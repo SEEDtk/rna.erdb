@@ -15,6 +15,8 @@ import org.theseed.utils.BaseProcessor;
  * sampleCorr	output the correlations between a genome's samples in the RNA database
  * clusterLoad	refresh the cluster IDs from a sample correlation table
  * baseline		set the baseline levels for particular genome
+ * normCheck	test the expression level distributions against the normal-distribution hypothesis
+ * featCorr		output the correlations between a genome's features in the RNA database
  */
 public class App
 {
@@ -49,6 +51,12 @@ public class App
             break;
         case "clusterLoad" :
             processor = new ClusterLoadProcessor();
+            break;
+        case "normCheck" :
+            processor = new NormalCheckProcessor();
+            break;
+        case "featCorr" :
+            processor = new FeatureCorrelationProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

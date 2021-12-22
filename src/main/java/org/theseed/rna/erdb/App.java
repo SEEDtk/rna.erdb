@@ -14,6 +14,7 @@ import org.theseed.utils.BaseProcessor;
  * measureLoad	load measurements into an SQL database
  * sampleCorr	output the correlations between a genome's samples in the RNA database
  * clusterLoad	refresh the cluster IDs from a sample correlation table
+ * baseline		set the baseline levels for particular genome
  */
 public class App
 {
@@ -25,6 +26,9 @@ public class App
         BaseProcessor processor;
         // Determine the command to process.
         switch (command) {
+        case "baseline" :
+            processor = new GenomeBaselineProcessor();
+            break;
         case "fpkm" :
             processor = new RnaSeqProcessor();
             break;

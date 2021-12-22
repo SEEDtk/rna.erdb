@@ -72,11 +72,11 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
     // COMMAND-LINE OPTIONS
 
     /** minimum percent features that must be represented for a sample to be considered good */
-    @Option(name = "min", metaVar = "50.0", usage = "minimum percent of features that must have valid levels")
+    @Option(name = "--min", metaVar = "50.0", usage = "minimum percent of features that must have valid levels")
     private double minFeaturePct;
 
     /** minimum percent quality that must be represented for a sample to be considered good */
-    @Option(name = "qual", metaVar = "80.0", usage = "minimum percent of mappings that must be high-quality")
+    @Option(name = "--qual", metaVar = "80.0", usage = "minimum percent of mappings that must be high-quality")
     private double minQualPct;
 
     /** name of the input directory containing the RNA Seq Utility output files */

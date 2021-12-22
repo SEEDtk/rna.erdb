@@ -6,25 +6,17 @@ package org.theseed.rna.erdb;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.theseed.erdb.utils.BaseDbProcessor;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
-import org.theseed.java.erdb.DbQuery;
-import org.theseed.java.erdb.DbRecord;
-import org.theseed.java.erdb.Relop;
 import org.theseed.utils.ParseFailureException;
 import org.theseed.utils.PatternMap;
 
@@ -51,7 +43,7 @@ import org.theseed.utils.PatternMap;
  * @author Bruce Parrello
  *
  */
-public abstract class BaseDbLoadProcessor extends BaseDbProcessor {
+public abstract class BaseDbLoadProcessor extends BaseDbRnaProcessor {
 
     /**
      * This object describes project/paper information for a sample.
@@ -94,14 +86,10 @@ public abstract class BaseDbLoadProcessor extends BaseDbProcessor {
     // FIELDS
     /** logging facility */
     protected static Logger log = LoggerFactory.getLogger(BaseDbLoadProcessor.class);
-    /** list of feature IDs in the order expected by the database */
-    private List<String> featureIndex;
     /** map of sample IDs to project info */
     private Map<String, ProjInfo> stringMap;
     /** map of sample ID patterns to project info */
     private PatternMap<ProjInfo> patternMap;
-    /** match pattern for genome IDs */
-    private static final Pattern GENOME_ID_PATTERN = Pattern.compile("\\d+\\.\\d+");
 
     // COMMAND-LINE OPTIONS
 
@@ -135,14 +123,13 @@ public abstract class BaseDbLoadProcessor extends BaseDbProcessor {
     protected abstract void setDbLoadDefaults();
 
     @Override
-    protected final boolean validateParms() throws ParseFailureException, IOException {
+    protected final void validateDbRnaParms() throws ParseFailureException, IOException {
         // Insure the genome ID is reasonable.
         this.validateGenomeId();
         // Process the project-data maps.
         this.readProjectFiles();
         // Do the subclass validation.
         this.validateDbLoadParms();
-        return true;
     }
 
     /**
@@ -152,16 +139,6 @@ public abstract class BaseDbLoadProcessor extends BaseDbProcessor {
      * @throws IOException
      */
     protected abstract void validateDbLoadParms() throws ParseFailureException, IOException;
-
-    /**
-     * Insure the reference genome ID is valid.
-     *
-     * @throws ParseFailureException
-     */
-    protected void validateGenomeId() throws ParseFailureException {
-        if (! GENOME_ID_PATTERN.matcher(this.getGenomeId()).matches())
-            throw new ParseFailureException("Invalid genome ID \"" + this.getGenomeId() + "\".");
-    }
 
     /**
      * Read in the files of project and pubmed information and set up the project assignment maps.
@@ -265,34 +242,6 @@ public abstract class BaseDbLoadProcessor extends BaseDbProcessor {
     }
 
     /**
-     * Build the feature index that maps array indices in the feature data array to features in
-     * the genome.
-     *
-     * @param db	RNA Seq database being updated
-     *
-     * @throws SQLException
-     * @throws ParseFailureException
-     */
-    protected void buildFeatureIndex(DbConnection db) throws SQLException, ParseFailureException {
-        // Create the array of feature indices.
-        this.featureIndex = new ArrayList<String>(4000);
-        try (DbQuery query = new DbQuery(db, "Genome Feature")) {
-            query.select("Feature", "fig_id", "seq_no");
-            query.rel("Genome.genome_id", Relop.EQ);
-            query.setParm(1, this.getGenomeId());
-            Iterator<DbRecord> iter = query.iterator();
-            while (iter.hasNext()) {
-                DbRecord feat = iter.next();
-                String fid = feat.getString("Feature.fig_id");
-                int idx = feat.getInt("Feature.seq_no");
-                this.featureIndex.add(idx, fid);
-            }
-        }
-        if (this.featureIndex.isEmpty())
-            throw new ParseFailureException("Genome ID \"" + this.getGenomeId() + "\" is not found or has no features.");
-    }
-
-    /**
      * Compute the project and pubmed information for the specified sample.
      *
      * @param jobLoader		loader for the RnaSample table, to be modified
@@ -310,29 +259,6 @@ public abstract class BaseDbLoadProcessor extends BaseDbProcessor {
             jobLoader.setNull("project_id");
             jobLoader.setNull("pubmed");
         }
-    }
-
-    /**
-     * @return the ID of the feature at the specified position in the expression level array
-     *
-     * @param i		array index of interest
-     */
-    protected String getFeatureId(int i) {
-        return this.featureIndex.get(i);
-    }
-
-    /**
-     * @return the number of features in the expression level array
-     */
-    protected int getFeatureCount() {
-        return this.featureIndex.size();
-    }
-
-    /**
-     * @return the reference genome ID
-     */
-    public String getGenomeId() {
-        return this.genomeId;
     }
 
 }

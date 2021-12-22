@@ -158,8 +158,9 @@ public class MetaLoadProcessor extends BaseDbProcessor {
             }
             // Now we need to add the features.  These are taken from the GTO.  We only do the pegs.
             try (DbLoader loader = DbLoader.batch(db, "Feature")) {
-                // All the features will point to the genome.
+                // All the features will point to the genome and have a dummy baseline of 0.
                 loader.set("genome_id", this.genomeId);
+                loader.set("baseline", 0.0);
                 // This counter will be used for the sequence number.
                 int seqNo = 0;
                 // Loop through the pegs.

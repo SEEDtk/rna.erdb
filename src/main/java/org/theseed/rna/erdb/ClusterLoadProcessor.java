@@ -29,6 +29,7 @@ import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.DbRecord;
+import org.theseed.java.erdb.DbUpdate;
 import org.theseed.java.erdb.Relop;
 import org.theseed.java.erdb.SqlBuffer;
 import org.theseed.utils.ParseFailureException;
@@ -143,6 +144,8 @@ public class ClusterLoadProcessor extends BaseDbProcessor {
             // insert one at a time.
             log.info("Creating cluster records in the database.");
             try (DbLoader clusterLoader = DbLoader.batch(db, "SampleCluster")) {
+                // All clusters will belong to this genome.
+                clusterLoader.set("genome_id", this.genomeId);
                 // This will be the cluster index.
                 int clI = 0;
                 for (Cluster cluster : this.clusters.getClusters()) {
@@ -162,34 +165,22 @@ public class ClusterLoadProcessor extends BaseDbProcessor {
                 }
             }
             // Now we store the cluster IDs in the sample records.
-            SqlBuffer updateBuffer = new SqlBuffer(db).append("UPDATE RnaSample SET ").quote("cluster_id")
-                    .append(" = ").appendMark().append(" WHERE sample_id = ").appendMark();
-            try (PreparedStatement stmt = db.createStatement(updateBuffer)) {
+            try (DbUpdate stmt = DbUpdate.batch(db, "RnaSample")) {
+                stmt.change("cluster_id").primaryKey().createStatement();
                 int updateCount = 0;
-                // We use this counter to control batching.
-                int batchSize = 0;
                 // Loop through the clusters.
                 for (Map.Entry<String, Collection<String>> clEntry : memberMap.entrySet()) {
                     // Update the cluster ID to this cluster's ID.
-                    stmt.setString(2, clEntry.getKey());
+                    stmt.set("cluster_id", clEntry.getKey());
                     // Perform the update for each member.
                     for (String sampleId : clEntry.getValue()) {
-                        // Insure there is room in the batch.
-                        if (batchSize >= 100) {
-                            stmt.executeBatch();
-                            batchSize = 0;
-                            log.info("{} samples updated.", updateCount);
-                        }
-                        // Batch this update.
-                        stmt.setString(1, sampleId);
-                        stmt.addBatch();
-                        batchSize++;
+                        stmt.set("sample_id", sampleId);
+                        stmt.update();
                         updateCount++;
+                        if (log.isInfoEnabled() && updateCount % 100 == 0)
+                            log.info("{} samples updated.", updateCount);
                     }
                 }
-                // Execute the residual.
-                if (batchSize > 0)
-                    stmt.executeBatch();
             }
             // Commit the changes.
             xact.commit();
@@ -238,9 +229,9 @@ public class ClusterLoadProcessor extends BaseDbProcessor {
     protected void deleteOldClusters(DbConnection db) throws SQLException {
         log.info("Deleting old clusters for {}.", this.genomeId);
         SqlBuffer deleteBuffer = new SqlBuffer(db).append("DELETE FROM ").quote("SampleCluster")
-                .append(" WHERE ").quote("SampleCluster", "cluster_id").append(" LIKE ").appendMark();
+                .append(" WHERE ").quote("SampleCluster", "genome_id").append(" = ").appendMark();
         try (PreparedStatement deleteStmt = db.createStatement(deleteBuffer)) {
-            deleteStmt.setString(1, this.genomeId + ":%");
+            deleteStmt.setString(1, this.genomeId);
             deleteStmt.execute();
         }
     }

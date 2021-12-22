@@ -1,0 +1,30 @@
+{
+	"folders": {},
+	"connections": {
+		"sqlite_jdbc-17dd9f93465-7909958f7ca75333": {
+			"provider": "sqlite",
+			"driver": "sqlite_jdbc",
+			"name": "rnaseq.db",
+			"save-password": true,
+			"read-only": false,
+			"configuration": {
+				"database": "C:\\Users\\Bruce\\Documents\\SEEDtk\\Data\\FonSyntBioThr\\RnaSeqDb\\rnaseq.db",
+				"url": "jdbc:sqlite:C:\\Users\\Bruce\\Documents\\SEEDtk\\Data\\FonSyntBioThr\\RnaSeqDb\\rnaseq.db",
+				"type": "dev",
+				"auth-model": "native",
+				"handlers": {}
+			}
+		}
+	},
+	"connection-types": {
+		"dev": {
+			"name": "Development",
+			"color": "255,255,255",
+			"description": "Regular development database",
+			"auto-commit": true,
+			"confirm-execute": false,
+			"confirm-data-change": false,
+			"auto-close-transactions": false
+		}
+	}
+}

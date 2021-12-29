@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,10 +103,6 @@ public abstract class BaseDbLoadProcessor extends BaseDbRnaProcessor {
     /** if specified, existing samples will be deleted before adding the new ones */
     @Option(name = "--replace", usage = "if specified, existing copies of the named samples will be deleted before loading")
     private boolean replaceFlag;
-
-    /** target genome ID */
-    @Argument(index = 0, metaVar = "genomeId", usage = "ID of genome to which the RNA was mapped", required = true)
-    private String genomeId;
 
     @Override
     protected final void setDbDefaults() {

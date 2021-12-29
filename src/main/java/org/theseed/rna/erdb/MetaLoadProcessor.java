@@ -234,6 +234,7 @@ public class MetaLoadProcessor extends BaseDbProcessor {
                         }
                         // Connect the feature to it.
                         connectLoader.set("group_id", groupId);
+                        connectLoader.insert();
                     }
                 }
             }

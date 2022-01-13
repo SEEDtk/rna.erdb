@@ -33,6 +33,7 @@ import org.theseed.utils.ParseFailureException;
  * --dbfile		database file name (SQLITE only)
  * --url		URL of database (host and name)
  * --parms		database connection parameter string (currently only MySQL)
+ * --sample		sample ID for GENE_DATA report
  *
  * @author Bruce Parrello
  *
@@ -54,6 +55,10 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
     /** type of report to output */
     @Argument(index = 1, metaVar = "reportType", usage = "type of report to produce")
     private BaseRnaDbReporter.Type reportType;
+
+    /** ID of sample to use as focus for the report */
+    @Option(name = "--sample", metaVar = "SRR10101", usage = "sample ID to use as report focus")
+    private String sampleId;
 
     @Override
     protected final void setDbDefaults() {
@@ -81,6 +86,14 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
             if (this.outStream != null)
                 this.outStream.close();
         }
+    }
+
+    /**
+     * @return the focus sample ID
+     */
+    @Override
+    public String getSampleId() {
+        return this.sampleId;
     }
 
 

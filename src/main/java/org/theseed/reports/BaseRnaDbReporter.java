@@ -38,6 +38,11 @@ public abstract class BaseRnaDbReporter {
          */
         String getGenomeId();
 
+        /**
+         * @return the ID of the sample of interest
+         */
+        String getSampleId();
+
     }
 
     /**
@@ -53,6 +58,11 @@ public abstract class BaseRnaDbReporter {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new NormalCheckReporter(processor, db);
+            }
+        }, GENE_DATA {
+            @Override
+            public BaseRnaDbReporter create(IParms processor, DbConnection db) {
+                return new GeneDataReporter(processor, db);
             }
         };
 

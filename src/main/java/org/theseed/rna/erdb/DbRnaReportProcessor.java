@@ -8,11 +8,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.io.LineReader;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.reports.BaseRnaDbReporter;
 import org.theseed.utils.BaseReportProcessor;
@@ -34,6 +38,8 @@ import org.theseed.utils.ParseFailureException;
  * --url		URL of database (host and name)
  * --parms		database connection parameter string (currently only MySQL)
  * --sample		sample ID for GENE_DATA report
+ * --gFilter	if specified, a CSV containing the genes to include in the GENE_DATA
+ * 				report (the default is to include all genes)
  *
  * @author Bruce Parrello
  *
@@ -45,6 +51,8 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
     protected static Logger log = LoggerFactory.getLogger(BaseReportProcessor.class);
     /** output stream */
     private OutputStream outStream;
+    /** gene filter set */
+    private Set<String> geneFilter;
 
     // COMMAND-LINE OPTIONS
 
@@ -60,9 +68,14 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
     @Option(name = "--sample", metaVar = "SRR10101", usage = "sample ID to use as report focus")
     private String sampleId;
 
+    /** name of CSV file containing gene filter (first column only) */
+    @Option(name = "-gFilter", metaVar = "genes.csv", usage = "CSV file containing genes to output in GENE_DATA report (default is to output all)")
+    private File geneFilterFile;
+
     @Override
     protected final void setDbDefaults() {
         this.outFile = null;
+        this.geneFilterFile = null;
     }
 
     @Override
@@ -73,6 +86,19 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
         } else {
             log.info("Output will be to {}.", this.outFile);
             this.outStream = new FileOutputStream(this.outFile);
+        }
+        // Check the gene filter file.
+        this.geneFilter = null;
+        if (this.geneFilterFile != null) {
+            // Here we need to create the gene filter.
+            try (LineReader geneStream = new LineReader(this.geneFilterFile)) {
+                this.geneFilter = new HashSet<String>(100);
+                for (String geneLine : geneStream) {
+                    String gene = StringUtils.substringBefore(geneLine, ",");
+                    this.geneFilter.add(gene);
+                }
+            }
+            log.info("{} genes found in filter file.", this.geneFilter.size());
         }
     }
 
@@ -94,6 +120,11 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
     @Override
     public String getSampleId() {
         return this.sampleId;
+    }
+
+    @Override
+    public Set<String> getGeneFilter() {
+        return this.geneFilter;
     }
 
 

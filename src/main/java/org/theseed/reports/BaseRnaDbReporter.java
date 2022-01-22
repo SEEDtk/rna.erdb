@@ -6,6 +6,7 @@ package org.theseed.reports;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,12 +37,17 @@ public abstract class BaseRnaDbReporter {
         /**
          * @return the ID of the genome of interest
          */
-        String getGenomeId();
+        public String getGenomeId();
 
         /**
          * @return the ID of the sample of interest
          */
-        String getSampleId();
+        public String getSampleId();
+
+        /**
+         * @return the set of gene aliases for a gene data report, or NULL to allow all genes
+         */
+        public Set<String> getGeneFilter();
 
     }
 

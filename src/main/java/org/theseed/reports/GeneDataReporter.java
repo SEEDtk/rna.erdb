@@ -6,6 +6,7 @@ package org.theseed.reports;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.java.erdb.DbConnection;
@@ -27,11 +28,15 @@ public class GeneDataReporter extends BaseRnaDbReporter {
     // FIELDS
     /** focus sample ID */
     private String sampleId;
+    /** gene filter (null to use all genes) */
+    private Set<String> geneFilter;
 
     public GeneDataReporter(IParms processor, DbConnection db) {
         super(processor, db);
         // Get the ID of the target sample.
         this.sampleId = processor.getSampleId();
+        // Get the gene filter.
+        this.geneFilter = processor.getGeneFilter();
     }
 
     @Override
@@ -53,7 +58,8 @@ public class GeneDataReporter extends BaseRnaDbReporter {
             double level = levels[i];
             if (Double.isFinite(level)) {
                 String alias = fIndex.getFeature(i).getAlias();
-                if (! StringUtils.isBlank(alias))
+                if (! StringUtils.isBlank(alias) &&
+                        (this.geneFilter == null || this.geneFilter.contains(alias)))
                     writer.format("%s,%6.2f%n", alias, level);
             }
         }

@@ -58,6 +58,9 @@ public class App
         case "featCorr" :
             processor = new FeatureCorrelationProcessor();
             break;
+        case "corrReport" :
+            processor = new FeatureCorrReportProcessor();
+            break;
         default:
             throw new RuntimeException("Invalid command " + command);
         }

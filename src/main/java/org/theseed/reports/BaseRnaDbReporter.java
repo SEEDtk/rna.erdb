@@ -55,7 +55,12 @@ public abstract class BaseRnaDbReporter {
      * This enumeration lists the report types.
      */
     public enum Type {
-        FEATURE_CLUSTER {
+        FID_CLUSTER_SUMMARY {
+            @Override
+            public BaseRnaDbReporter create(IParms processor, DbConnection db) {
+                return new FeatureClusterSummaryReporter(processor, db);
+            }
+        }, FEATURE_CLUSTER {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new FeatureClusterReporter(processor, db);

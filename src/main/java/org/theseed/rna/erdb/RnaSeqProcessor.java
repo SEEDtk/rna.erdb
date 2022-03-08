@@ -36,6 +36,8 @@ import com.github.cliftonlabs.json_simple.JsonObject;
  * reads must be trimmed.  Next, the trimmed reads must be aligned to the base genome.  Finally, the FPKM files must be copied
  * into the main output directory.
  *
+ * The input source can be a PATRIC workspace directory or a list of NCBI SRA sample run IDs.
+ *
  * The positional parameters are the ID of the base genome, the name of the input source
  * containing the fastq files, the name of the output directory, and the name of the workspace.
  * The directory names are PATRIC directories, not files in the file system.

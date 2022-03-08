@@ -75,6 +75,11 @@ public abstract class BaseRnaDbReporter {
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new GeneDataReporter(processor, db);
             }
+        }, SAMPLES {
+            @Override
+            public BaseRnaDbReporter create(IParms processor, DbConnection db) {
+                return new SampleListReporter(processor, db);
+            }
         };
 
         /**

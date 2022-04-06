@@ -39,7 +39,6 @@ public class ThreonineMeasureComputer extends MeasureComputer {
             this.addMeasurement("I" + insert, 1.0);
         for (String delete : sampleId.getDeletes())
             this.addMeasurement(delete, 1.0);
-        // Finally, get the quantitative measurements.
     }
 
 }

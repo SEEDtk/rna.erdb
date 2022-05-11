@@ -17,6 +17,7 @@ import org.theseed.utils.BaseProcessor;
  * baseline		set the baseline levels for particular genome
  * featCorr		output the correlations between a genome's features in the RNA database
  * dbReport		write a database report
+ * neighbors	store the neighbor genes in the database
  */
 public class App
 {
@@ -60,6 +61,9 @@ public class App
             break;
         case "corrReport" :
             processor = new FeatureCorrReportProcessor();
+            break;
+        case "neighbors" :
+            processor = new NeighborProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

@@ -32,7 +32,7 @@ import org.theseed.utils.ParseFailureException;
  * --dbfile		database file name (SQLITE only)
  * --url		URL of database (host and name)
  * --parms		database connection parameter string (currently only MySQL)
- * --min		minimum clustering score, default 0.70
+ * --min		minimum clustering score, default 0.90
  * --load		load file for correlations; if specified, it should have the feature IDs in the first
  * 				two columns and the correlation score in the third
  * --save		file in which to save the correlations computed

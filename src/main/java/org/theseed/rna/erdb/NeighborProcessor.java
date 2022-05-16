@@ -36,6 +36,7 @@ import org.theseed.utils.ParseFailureException;
  * -i	name of the file containing the feature correlations (if not STDIN)
  * -n	number of neighbors to keep for each feature
  *
+ * --min		minimum acceptable correlation (default 0.90)
  * --type		type of database (default SQLITE)
  * --dbfile		database file name (SQLITE only)
  * --url		URL of database (host and name)
@@ -66,17 +67,24 @@ public class NeighborProcessor extends BaseDbRnaProcessor {
             usage = "maximum number of neighbors to retain")
     private int nMax;
 
+    /** minimum acceptable correlation */
+    @Option(name = "--min", metaVar = "0.80", usage = "minimum acceptable correlation for a neighbor")
+    private double minCorr;
+
     @Override
     protected void setDbDefaults() {
         this.inFile = null;
         this.nMax =  10;
+        this.minCorr = 0.90;
     }
 
     @Override
     protected void validateDbRnaParms() throws ParseFailureException, IOException {
-        // Validate the neighborhood size.
+        // Validate the neighborhood size and minimum correlation.
         if (this.nMax <= 0)
             throw new ParseFailureException("Maximum neighborhood size must be positive.");
+        if (this.minCorr <= 0.0 || this.minCorr > 1.0)
+            throw new ParseFailureException("Minimum correlation must be between 0 and 1.");
         // Set up the input file.
         if (this.inFile == null) {
             log.info("Correlations will be read from the standard input.");
@@ -94,15 +102,19 @@ public class NeighborProcessor extends BaseDbRnaProcessor {
             this.neighborhoodMap = new HashMap<String, Neighborhood>(4000);
             // Loop through the input file, saving correlations.
             int inCount = 0;
+            int keptCount = 0;
             for (TabbedLineReader.Line line : this.inStream) {
                 String id1 = line.get(0);
                 String id2 = line.get(1);
                 double corr = line.getDouble(2);
-                this.addCorr(id1, id2, corr);
-                this.addCorr(id2, id1, corr);
+                if (corr >= this.minCorr) {
+                    this.addCorr(id1, id2, corr);
+                    this.addCorr(id2, id1, corr);
+                    keptCount++;
+                }
                 inCount++;
-                if (log.isInfoEnabled() && inCount % 5000 == 0)
-                    log.info("{} correlations processed.", inCount);
+                if (log.isInfoEnabled() && inCount % 100000 == 0)
+                    log.info("{} correlations processed, {} kept.", inCount, keptCount);
             }
             // Now we must store the neighborhoods in the features.  Get the feature table.
             log.info("Updating database.");
@@ -110,6 +122,7 @@ public class NeighborProcessor extends BaseDbRnaProcessor {
             int nCount = 0;
             try (DbUpdate updater = DbUpdate.batch(db, "Feature")) {
                 updater.change("neighbors").primaryKey();
+                updater.createStatement();
                 for (Map.Entry<String, Neighborhood> hoodEntry : this.neighborhoodMap.entrySet()) {
                     String fid = hoodEntry.getKey();
                     Neighborhood hood = hoodEntry.getValue();
@@ -121,6 +134,8 @@ public class NeighborProcessor extends BaseDbRnaProcessor {
                         updater.update();
                         outCount++;
                         nCount += hood.size();
+                        if (log.isInfoEnabled() && outCount % 100 == 0)
+                            log.info("{} updates submitted.", outCount);
                     }
                 }
             }

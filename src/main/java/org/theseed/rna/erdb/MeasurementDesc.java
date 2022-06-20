@@ -73,6 +73,11 @@ public class MeasurementDesc {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return this.sampleId + "[" + this.type + "]";
+    }
+
     /**
      * Store this measurement in the specified insert statement
      *

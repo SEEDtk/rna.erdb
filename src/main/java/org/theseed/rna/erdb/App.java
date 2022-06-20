@@ -16,6 +16,7 @@ import org.theseed.utils.BaseProcessor;
  * clusterLoad	refresh the cluster IDs from a sample correlation table
  * baseline		set the baseline levels for particular genome
  * featCorr		output the correlations between a genome's features in the RNA database
+ * corrReport	produce a report on feature correlations
  * dbReport		write a database report
  * neighbors	store the neighbor genes in the database
  */

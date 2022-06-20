@@ -8,7 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
@@ -17,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.theseed.erdb.utils.BaseDbProcessor;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
+import org.theseed.java.erdb.DbQuery;
+import org.theseed.java.erdb.Relop;
 import org.theseed.utils.ParseFailureException;
 
 /**
@@ -51,6 +55,8 @@ public class MeasureLoadProcessor extends BaseDbProcessor implements MeasureComp
     private List<MeasureComputer> computers;
     /** list of samples to process */
     private Collection<String> samples;
+    /** set of measurements already present */
+    private Set<MeasurementDesc> measureSet;
 
     // COMMAND-LINE OPTIONS
 
@@ -91,6 +97,23 @@ public class MeasureLoadProcessor extends BaseDbProcessor implements MeasureComp
 
     @Override
     protected void runDbCommand(DbConnection db) throws Exception {
+        // We start by getting a list of the measurements we already have.  These are automatically
+        // skipped.
+        this.measureSet = new HashSet<MeasurementDesc>(1000);
+        try (DbQuery query = new DbQuery(db, "Measurement")) {
+            query.select("Measurement", "sample_id", "measure_type", "value");
+            query.rel("Measurement.genome_id", Relop.EQ);
+            query.setParm(1, this.genomeId);
+            var iter = query.iterator();
+            while (iter.hasNext()) {
+                var record = iter.next();
+                String sampleId = record.getString("Measurement.sample_id");
+                String type = record.getString("Measurement.measure_type");
+                double value = record.getDouble("Measurement.value");
+                var desc = new MeasurementDesc(sampleId, type, value);
+                this.measureSet.add(desc);
+            }
+        }
         try (DbLoader measureLoader = DbLoader.batch(db, "Measurement")) {
             log.info("Processing samples.  Target genome ID is {}.", this.genomeId);
             measureLoader.set("genome_id", this.genomeId);
@@ -105,9 +128,13 @@ public class MeasureLoadProcessor extends BaseDbProcessor implements MeasureComp
                     for (MeasureComputer computer : computers) {
                         Collection<MeasurementDesc> measures = computer.measureSample(sample_id);
                         for (MeasurementDesc measure : measures) {
-                            measure.storeData(measureLoader);
-                            measureLoader.insert();
-                            mCount++;
+                            if (this.measureSet.contains(measure))
+                                log.info("{} already in database.", measure);
+                            else {
+                                measure.storeData(measureLoader);
+                                measureLoader.insert();
+                                mCount++;
+                            }
                         }
                     }
                     count++;

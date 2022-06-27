@@ -19,6 +19,7 @@ import org.theseed.utils.BaseProcessor;
  * corrReport	produce a report on feature correlations
  * dbReport		write a database report
  * neighbors	store the neighbor genes in the database
+ * xmatrix		build a random-forest input directory for a specified measurement
  */
 public class App
 {
@@ -65,6 +66,9 @@ public class App
             break;
         case "neighbors" :
             processor = new NeighborProcessor();
+            break;
+        case "xmatrix" :
+            processor = new XMatrixProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

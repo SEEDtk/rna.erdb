@@ -57,6 +57,7 @@ public abstract class RnaFeatureLevelComputer {
 
     /**
      * This is the simplest feature level computer.  It simply returns the input unchanged.
+     * Unknown values translate to the baseline.
      */
     public static class Null extends RnaFeatureLevelComputer {
 
@@ -66,7 +67,7 @@ public abstract class RnaFeatureLevelComputer {
 
         @Override
         public double compute(RnaFeature feat, double level) {
-            return level;
+            return (Double.isFinite(level) ? level : feat.getBaseLine());
         }
 
     }

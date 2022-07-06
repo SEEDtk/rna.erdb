@@ -27,9 +27,16 @@ public abstract class RnaFeatureFilter {
 
             @Override
             public RnaFeatureFilter create(IParms processor) {
-                return new TypeRnaFeatureFilter(processor, "Subsystem");
+                return new TypeRnaFeatureFilter(processor, "subsystem");
             }
 
+        },
+        /** include all features */
+        ALL {
+            @Override
+            public RnaFeatureFilter create(IParms processor) {
+                return new RnaFeatureFilter.All(processor);
+            }
         };
 
         /**
@@ -46,5 +53,21 @@ public abstract class RnaFeatureFilter {
      * @param feat		feature to check
      */
     public abstract boolean include(RnaFeature feat);
+
+    /**
+     * This is a simple filter that allows everything through.
+     *
+     */
+    public static class All extends RnaFeatureFilter {
+
+        public All(IParms processor) { }
+
+        @Override
+        public boolean include(RnaFeature feat) {
+            return true;
+        }
+
+    }
+
 
 }

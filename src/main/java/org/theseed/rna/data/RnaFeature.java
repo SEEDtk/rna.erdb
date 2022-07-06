@@ -5,11 +5,12 @@ package org.theseed.rna.data;
 
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.Relop;
@@ -23,6 +24,8 @@ import org.theseed.java.erdb.Relop;
 public class RnaFeature {
 
     // FIELDS
+    /** logging facility */
+    protected static Logger log = LoggerFactory.getLogger(RnaFeature.class);
     /** ID of the feature */
     private String fid;
     /** column name to give the feature */
@@ -46,6 +49,7 @@ public class RnaFeature {
         this.baseLine = baseline;
         this.fid = fig_id;
         this.groupTypes = new TreeSet<String>();
+        this.idx = seq_no;
         // Form the name from the fig ID and the gene name.
         String prefix = (StringUtils.isBlank(gene_name) ? "peg" : gene_name);
         String suffix = StringUtils.substringAfterLast(fig_id, ".");
@@ -63,9 +67,10 @@ public class RnaFeature {
      *
      * @throws SQLException
      */
-    public static Set<RnaFeature> loadFeats(DbConnection db, String genomeId, RnaFeatureFilter filter) throws SQLException {
+    public static Map<String, RnaFeature> loadFeats(DbConnection db, String genomeId, RnaFeatureFilter filter) throws SQLException {
         // We will start by building a map of the features.
-        var featMap = new HashMap<String, RnaFeature>(4000);
+        var retVal = new HashMap<String, RnaFeature>(4000);
+        log.info("Reading features from {}.", genomeId);
         try (DbQuery fQuery = new DbQuery(db, "Feature")) {
             fQuery.select("Feature", "fig_id", "gene_name", "baseline", "seq_no");
             fQuery.rel("Feature.genome_id", Relop.EQ);
@@ -75,12 +80,13 @@ public class RnaFeature {
             while (iter.hasNext()) {
                 var record = iter.next();
                 var fid = record.getString("Feature.fig_id");
-                var feat = new RnaFeature(fid, record.getString("gene_name"), record.getDouble("Feature.baseline"),
-                        record.getInt("Feature.seq_no"));
-                featMap.put(fid, feat);
+                var feat = new RnaFeature(fid, record.getString("Feature.gene_name"),
+                        record.getDouble("Feature.baseline"), record.getInt("Feature.seq_no"));
+                retVal.put(fid, feat);
             }
         }
         // Now add in all the group types.
+        log.info("Reading group data for {} features.", retVal.size());
         try (DbQuery tQuery = new DbQuery(db, "Feature FeatureToGroup FeatureGroup")) {
             tQuery.select("FeatureToGroup", "fig_id");
             tQuery.select("FeatureGroup", "group_type");
@@ -92,13 +98,20 @@ public class RnaFeature {
                 var record = iter.next();
                 var fid = record.getString("FeatureToGroup.fig_id");
                 var type = record.getString("FeatureGroup.group_type");
-                var feat = featMap.get(fid);
+                var feat = retVal.get(fid);
                 if (feat != null)
                     feat.groupTypes.add(type);
             }
         }
-        // Form the list into an array.
-        var retVal = featMap.values().stream().filter(x -> filter.include(x)).collect(Collectors.toSet());
+        // Apply the filter.
+        log.info("Applying filter.");
+        var iter = retVal.entrySet().iterator();
+        while (iter.hasNext()) {
+            var entry = iter.next();
+            if (! filter.include(entry.getValue()))
+                iter.remove();
+        }
+        log.info("{} features passed filtering.", retVal.size());
         return retVal;
     }
 

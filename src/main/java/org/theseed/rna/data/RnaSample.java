@@ -113,5 +113,4 @@ public class RnaSample {
         return this.output;
     }
 
-    // TODO constructors and methods for RnaSample
 }

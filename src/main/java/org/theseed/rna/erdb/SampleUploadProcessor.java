@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -29,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
+import org.theseed.java.erdb.DbQuery;
+import org.theseed.java.erdb.Relop;
 import org.theseed.utils.ParseFailureException;
 
 /**
@@ -53,6 +56,7 @@ import org.theseed.utils.ParseFailureException;
  * --replace	if specified, the new samples will be removed from the database before loading
  * --qual		minimum percent quality required for a good sample
  * --min		minimum representation required for a good sample
+ * --clear		erase all existing samples for the genome
  *
  * @author Bruce Parrello
  *
@@ -79,6 +83,10 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
     @Option(name = "--qual", metaVar = "80.0", usage = "minimum percent of mappings that must be high-quality")
     private double minQualPct;
 
+    /** if specified, all the samples for the genome will be deleted before loading */
+    @Option(name = "--clear", usage = "erase existing samples before loading")
+    private boolean clearFlag;
+
     /** name of the input directory containing the RNA Seq Utility output files */
     @Argument(index = 1, metaVar = "sampleDir", usage = "directory containing the FPKM and SAMSTAT files for the samples",
             required = true)
@@ -88,6 +96,7 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
     protected void setDbLoadDefaults() {
         this.minFeaturePct = 40.0;
         this.minQualPct = 50.0;
+        this.clearFlag = false;
     }
 
     @Override
@@ -108,6 +117,32 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
 
     @Override
     protected void loadSamples(DbConnection db) throws Exception {
+        // Check here to see if we need to delete existing samples.
+        if (this.clearFlag) {
+            try (var xact = db.new Transaction(); var query = new DbQuery(db, "RnaSample")) {
+                // Get all the samples for this genome.
+                Set<String> samples = new HashSet<String>(1000);
+                log.info("Deleting old RNA samples for {}.", this.getGenomeId());
+                query.select("RnaSample", "sample_id");
+                query.rel("RnaSample.genome_id", Relop.EQ);
+                query.setParm(1, this.getGenomeId());
+                var iter = query.iterator();
+                while (iter.hasNext())
+                    samples.add(iter.next().getString("RnaSample.sample_id"));
+                log.info("{} samples to delete.", samples.size());
+                // Loop through the samples, deleting them.
+                int count = 0;
+                for (var sample : samples) {
+                    db.deleteRecord("RnaSample", sample);
+                    count++;
+                    if (count % 100 == 0)
+                        log.info("{} samples deleted.", count);
+                }
+                xact.commit();
+                log.info("{} samples deleted for genome {}.", count, this.getGenomeId());
+            }
+        }
+        // Now process the loading.
         try (DbLoader jobLoader = DbLoader.batch(db, "RnaSample")) {
             // Store the genome ID and cluster ID in the loader.  These are
             // always the same.

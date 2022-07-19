@@ -35,7 +35,7 @@ import org.theseed.utils.ParseFailureException;
 /**
  * This command loads the metadata for a genome into an RNA Seq database.  If the genome is
  * already present in the database, it will be deleted.  This necessitates reloading the
- * samples, which is performed by the "DbLoadProcessor" command.
+ * samples, which is performed by the "SampleUploadProcessor" command.
  *
  * The postional parameters should be the name of the GTO file for the source genome, the
  * name of the groups file, and the name of the subsystem map.

@@ -49,6 +49,16 @@ public abstract class BaseRnaDbReporter {
          */
         public Set<String> getGeneFilter();
 
+        /**
+         * @return the measurement type of interest
+         */
+        public String getMeasureType();
+
+        /**
+         * @return the project of interest
+         */
+        public String getProjectId();
+
     }
 
     /**
@@ -79,6 +89,11 @@ public abstract class BaseRnaDbReporter {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new SampleListReporter(processor, db);
+            }
+        }, MEASURED {
+            @Override
+            public BaseRnaDbReporter create(IParms processor, DbConnection db) {
+                return new SampleMeasureReporter(processor, db);
             }
         };
 

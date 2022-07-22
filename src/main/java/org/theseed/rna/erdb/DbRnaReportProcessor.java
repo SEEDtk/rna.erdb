@@ -32,6 +32,7 @@ import org.theseed.utils.ParseFailureException;
  * -h	display command-line usage
  * -v	display more frequent log messages
  * -o 	output file for report (if not STDOUT)
+ * -m	type of measurement for MEASURE report
  *
  * --type		type of database (default SQLITE)
  * --dbfile		database file name (SQLITE only)
@@ -40,6 +41,7 @@ import org.theseed.utils.ParseFailureException;
  * --sample		sample ID for GENE_DATA report
  * --gFilter	if specified, a CSV containing the genes to include in the GENE_DATA
  * 				report (the default is to include all genes)
+ * --proj		name of project of interest for MEASURE report
  *
  * @author Bruce Parrello
  *
@@ -72,10 +74,20 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
     @Option(name = "-gFilter", metaVar = "genes.csv", usage = "CSV file containing genes to output in GENE_DATA report (default is to output all)")
     private File geneFilterFile;
 
+    /** target project ID */
+    @Option(name = "--proj", aliases = { "--project" }, metaVar = "PROJ001", usage = "project ID for project-based reports")
+    private String projectId;
+
+    /** measurement type of interest */
+    @Option(name = "--measure", aliases = { "--mType", "-m" }, metaVar = "thr_g/L", usage = "measurement type to display for measurement reports")
+    private String mType;
+
     @Override
     protected final void setDbDefaults() {
         this.outFile = null;
         this.geneFilterFile = null;
+        this.projectId = null;
+        this.mType = "none";
     }
 
     @Override
@@ -125,6 +137,16 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
     @Override
     public Set<String> getGeneFilter() {
         return this.geneFilter;
+    }
+
+    @Override
+    public String getMeasureType() {
+        return this.mType;
+    }
+
+    @Override
+    public String getProjectId() {
+        return this.projectId;
     }
 
 

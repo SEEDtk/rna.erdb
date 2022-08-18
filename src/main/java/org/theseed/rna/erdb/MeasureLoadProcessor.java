@@ -129,7 +129,7 @@ public class MeasureLoadProcessor extends BaseDbProcessor implements MeasureComp
                         Collection<MeasurementDesc> measures = computer.measureSample(sample_id);
                         for (MeasurementDesc measure : measures) {
                             if (this.measureSet.contains(measure))
-                                log.info("{} already in database.", measure);
+                                log.debug("{} already in database.", measure);
                             else {
                                 measure.storeData(measureLoader);
                                 measureLoader.insert();

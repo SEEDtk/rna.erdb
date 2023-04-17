@@ -38,7 +38,7 @@ import org.theseed.utils.ParseFailureException;
  * This command loads sample data downloaded from PATRIC directly into an RNA Seq database.
  *
  * The positional parameters are the ID of the reference genome and the name of the directory
- * containing the fpkm and samstat files.
+ * containing the tpm and html report files.
  *
  * The command-line options are as follows.
  *
@@ -69,7 +69,7 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
     /** set of samples to process */
     private Set<String> sampleSet;
     /** pattern for extracting sample ID */
-    private static final Pattern FPKM_FILE_PATTERN = Pattern.compile("(.+)_genes\\.fpkm");
+    private static final Pattern TPM_FILE_PATTERN = Pattern.compile("(.+)_genes\\.tpm");
     /** parser for SAMSTAT description */
     protected static final Pattern SAMSTAT_STATS_LINE = Pattern.compile("(\\d+) reads,\\s+size:\\s*(\\d+).+created\\s+(\\d+-\\d+-\\d+).*");
 
@@ -88,7 +88,7 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
     private boolean clearFlag;
 
     /** name of the input directory containing the RNA Seq Utility output files */
-    @Argument(index = 1, metaVar = "sampleDir", usage = "directory containing the FPKM and SAMSTAT files for the samples",
+    @Argument(index = 1, metaVar = "sampleDir", usage = "directory containing the TPM and SAMSTAT files for the samples",
             required = true)
     private File inDir;
 
@@ -110,7 +110,7 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
             throw new FileNotFoundException("Minimum quality percent must be between 0 and 100.");
         // Now we need to parse the directory for the sample IDs.
         File[] inFiles = this.inDir.listFiles();
-        this.sampleSet = Arrays.stream(inFiles).map(f -> FPKM_FILE_PATTERN.matcher(f.getName())).filter(m -> m.matches())
+        this.sampleSet = Arrays.stream(inFiles).map(f -> TPM_FILE_PATTERN.matcher(f.getName())).filter(m -> m.matches())
                 .map(m -> m.group(1)).collect(Collectors.toSet());
         log.info("{} samples found in {}.", this.sampleSet.size(), this.inDir);
     }
@@ -160,8 +160,8 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
                 jobLoader.set("sample_id", sampleId);
                 // Get the data files.
                 File samstatFile = new File(this.inDir, sampleId + ".samstat.html");
-                File fpkmFile = new File(this.inDir, sampleId + "_genes.fpkm");
-                // We know the FPKM file exists because we used it to find the sample ID.  Check the
+                File tpmFile = new File(this.inDir, sampleId + "_genes.tpm");
+                // We know the TPM file exists because we used it to find the sample ID.  Check the
                 // SAMSTAT file.
                 if (! samstatFile.exists()) {
                     log.warn("No SAMSTAT file found for sample {}.", sampleId);
@@ -170,7 +170,7 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
                     log.info("Processing sample {} of {}: {}.", count, nSamples, sampleId);
                     // Find the data.
                     double qual = this.processSamstat(jobLoader, samstatFile);
-                    double representation = this.processFpkm(jobLoader, fpkmFile);
+                    double representation = this.processTpm(jobLoader, tpmFile);
                     // Analyze the sample quality.
                     boolean suspicious = (qual < this.minQualPct || representation < this.minFeaturePct);
                     jobLoader.set("suspicious", suspicious);
@@ -190,26 +190,27 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
     }
 
     /**
-     * Fill the table loader with data from the FPKM file.
+     * Fill the table loader with data from the TPM file.
      *
      * @param jobLoader		loader for the RnaSample table
-     * @param fpkmFile		file containing the FPKM expression results
+     * @param tpmFile		file containing the TPM expression results
      *
      * @return the percent of features expressed
      *
      * @throws IOException
      * @throws SQLException
      */
-    private double processFpkm(DbLoader jobLoader, File fpkmFile) throws IOException, SQLException {
+    private double processTpm(DbLoader jobLoader, File tpmFile) throws IOException, SQLException {
         double retVal = 0.0;
-        try (TabbedLineReader inStream = new TabbedLineReader(fpkmFile)) {
+        try (TabbedLineReader inStream = new TabbedLineReader(tpmFile)) {
             // The main content of this file is the expression levels (feat_data, feat_count).
             // Each feature is on a line by itself, and we store its level in the following array.
             final int n = this.getFeatureCount();
             // Get the columns of the key data fields.
+            // TODO new columns
             int fidCol = inStream.findField("tracking_id");
-            int fpkmCol = inStream.findField("FPKM");
-            int okCol = inStream.findField("FPKM_status");
+            int tpmCol = inStream.findField("TPM");
+            int okCol = inStream.findField("TPM_status");
             // First, create a map of feature IDs to expression levels.  Only levels that are OK
             // will be accepted.  We also compute a scale factor.  Each level will be scaled by
             // 1 million over the total of all the levels.
@@ -218,11 +219,11 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
             for (TabbedLineReader.Line line : inStream) {
                 String ok = line.get(okCol);
                 if (ok.contentEquals("OK")) {
-                    double fpkm = line.getDouble(fpkmCol);
-                    if (fpkm > 0.0) {
+                    double tpm = line.getDouble(tpmCol);
+                    if (tpm > 0.0) {
                         String fid = line.get(fidCol);
-                        levels.put(fid, fpkm);
-                        total += fpkm;
+                        levels.put(fid, tpm);
+                        total += tpm;
                     }
                 }
             }

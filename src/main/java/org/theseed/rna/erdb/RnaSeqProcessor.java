@@ -33,7 +33,7 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 
 /**
  * This command runs a directory of RNA sequence data.  This is a complicated process that involves multiple steps.  First, the
- * reads must be trimmed.  Next, the trimmed reads must be aligned to the base genome.  Finally, the FPKM files must be copied
+ * reads must be trimmed.  Next, the trimmed reads must be aligned to the base genome.  Finally, the TPM files must be copied
  * into the main output directory.
  *
  * The input source can be a PATRIC workspace directory or a list of NCBI SRA sample run IDs.
@@ -316,43 +316,68 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
         log.info("Scanning output directory {}.", this.outDir);
         List<DirEntry> outputFiles = this.dirTask.list(this.outDir);
         this.updateCounter = 0;
+        // We need to make sure there is a jobs directory and an output (TPM) directory.
         boolean fpkmFound = false;
+        boolean jobsFound = false;
         for (DirEntry outputFile : outputFiles) {
-            if (outputFile.getType() == DirEntry.Type.JOB_RESULT) {
-                // Here we have a possible job result.  Check the phase and adjust the job accordingly.
-                String jobFolder = outputFile.getName();
-                if (! this.checkJobResult(jobFolder, RnaJob.Phase.ALIGN))
-                    this.checkJobResult(jobFolder, RnaJob.Phase.TRIM);
-            } else if (outputFile.getName().contentEquals(RnaJob.FPKM_DIR)) {
-                this.checkFpkmDirectory();
-                fpkmFound = true;
+            if (outputFile.getType() == DirEntry.Type.FOLDER) {
+                switch (outputFile.getName()) {
+                case RnaJob.JOB_DIR :
+                    jobsFound = true;
+                    break;
+                case RnaJob.TPM_DIR :
+                    fpkmFound = true;
+                    break;
+                }
             }
         }
-        if (! fpkmFound) {
-            log.info("Creating FPKM output directory.");
+        // Insure we have the jobs folder.
+        if (! jobsFound) {
+            log.info("Creating jobs output directory.");
             MkDirTask mkdir = new MkDirTask(this.workDir, this.workspace);
-            mkdir.make(RnaJob.FPKM_DIR, this.outDir);
+            mkdir.make(RnaJob.JOB_DIR, this.outDir);
+        } else {
+            // Here the folder was already in place.  Scan it for job status updates.
+            log.info("Scanning {} folder in {}.", RnaJob.JOB_DIR, this.outDir);
+            outputFiles = this.dirTask.list(this.outDir + "/" + RnaJob.JOB_DIR);
+            for (DirEntry outputFile : outputFiles) {
+                if (outputFile.getType() == DirEntry.Type.JOB_RESULT) {
+                    // Here we have a possible job result.  Check the phase and adjust the job accordingly.
+                    String jobFolder = outputFile.getName();
+                    if (! this.checkJobResult(jobFolder, RnaJob.Phase.ALIGN))
+                        this.checkJobResult(jobFolder, RnaJob.Phase.TRIM);
+                }
+            }
+        }
+        // Insure we have the output folder.
+        if (! fpkmFound) {
+            log.info("Creating TPM output directory.");
+            MkDirTask mkdir = new MkDirTask(this.workDir, this.workspace);
+            mkdir.make(RnaJob.TPM_DIR, this.outDir);
+        } else {
+            // Here the folder was already in place.  Scan it for finished jobs.
+            this.checkTpmDirectory();
         }
         log.info("Output directory scan complete. {} job updates recorded.", this.updateCounter);
     }
 
     /**
-     * Process the FPKM directory to determine which FPKM files have already been copied.
+     * Process the TPM directory to determine which TPM files have already been copied.
      */
-    private void checkFpkmDirectory() {
+    private void checkTpmDirectory() {
         RnaJob.Phase nextPhase = RnaJob.Phase.values()[RnaJob.Phase.COPY.ordinal() + 1];
-        log.info("Scanning {} folder in {}.", RnaJob.FPKM_DIR, this.outDir);
-        List<DirEntry> outputFiles = this.dirTask.list(this.outDir + "/" + RnaJob.FPKM_DIR);
+        log.info("Scanning {} folder in {}.", RnaJob.TPM_DIR, this.outDir);
+        List<DirEntry> outputFiles = this.dirTask.list(this.outDir + "/" + RnaJob.TPM_DIR);
         for (DirEntry outputFile : outputFiles) {
             if (outputFile.getType() == DirEntry.Type.TEXT) {
                 String fileName = outputFile.getName();
                 String jobName = RnaJob.Phase.COPY.checkSuffix(fileName);
                 if (jobName != null) {
-                    // Here we have a potential FPKM file.  Insure it's for one of our jobs.
+                    // Here we have a potential TPM file.  Insure it's for one of our jobs.
                     RnaJob job = this.activeJobs.get(jobName);
                     if (job != null) {
                         job.mergeState(nextPhase);
-                        log.info("Job {} updated by found FPKM file {}.", jobName, fileName);
+                        log.info("Job {} updated by found TPM file {}.", jobName, fileName);
                         this.updateCounter++;
                     }
                 }
@@ -380,7 +405,7 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
             RnaJob job = this.activeJobs.get(jobName);
             if (job != null) {
                 // It is.  Check for failure.  Otherwise, update the state.
-                List<DirEntry> folderFiles = this.dirTask.list(this.outDir + "/." + jobFolder);
+                List<DirEntry> folderFiles = this.dirTask.list(job.getOutDir() + "/." + jobFolder);
                 if (folderFiles.stream().anyMatch(x -> x.getName().contentEquals("JobFailed.txt"))) {
                     log.warn("Job {} folder {} contains failure data.", jobName, jobFolder);
                     this.retryCounts.count(jobName);

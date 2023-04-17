@@ -51,6 +51,8 @@ import org.theseed.utils.ParseFailureException;
  * --rep		method for representing the expression data (default TRIAGE)
  * --scale		scale factor to be divided into output measurement (default 1.0)
  * --col		name to give to the output column (default, same as measurement)
+ * --file		if specified, the name of a tab-delimited file containing sample IDs in the first column, and measurement values in
+ * 				the column with the same name as the measurement
  *
  * @author Bruce Parrello
  *

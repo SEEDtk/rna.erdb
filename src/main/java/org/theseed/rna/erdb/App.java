@@ -7,7 +7,7 @@ import org.theseed.utils.BaseProcessor;
 /**
  * Commands for utilities relating to RNA-Seq processing.
  *
- * fpkm			run jobs to convert FASTQ files to FPKM results
+ * tpm			run jobs to convert FASTQ files to TPM results
  * metaLoad		load genome metadata into an SQL database
  * download		download a set of RNA results from PATRIC and produce a metadata file for them
  * upload		process RNA results from PATRIC and add them to a database
@@ -36,7 +36,7 @@ public class App
         case "baseline" :
             processor = new GenomeBaselineProcessor();
             break;
-        case "fpkm" :
+        case "tpm" :
             processor = new RnaSeqProcessor();
             break;
         case "metaLoad" :

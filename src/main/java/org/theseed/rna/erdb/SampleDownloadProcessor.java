@@ -27,8 +27,8 @@ import org.theseed.utils.ParseFailureException;
  * This command downloads all the samples from a PATRIC RNA-seq processing directory and produces a metadata file for them.
  * This is designed specifically for NCBI samples, so that they can be efficiently processed by FpmkSummaryProcessor.
  *
- * The positional parameters are the name of the PATRIC directory (generally ending in "/FPKM"), the PATRIC workspace ID, and
- * the name of the local output directory.  The samples will be downloaded into a subdirectory named FPKM.  The output file will
+ * The positional parameters are the name of the PATRIC directory (generally ending in "/TPM"), the PATRIC workspace ID, and
+ * the name of the local output directory.  The samples will be downloaded into a subdirectory named TPM.  The output file will
  * be produced on the standard output.
  *
  * The command-line options are as follows:
@@ -89,10 +89,10 @@ public class SampleDownloadProcessor extends BaseReportProcessor {
             log.info("Creating output directory {}.", this.outDir);
             FileUtils.forceMkdir(this.outDir);
         }
-        // Prepare the FPKM subdirectory.
-        fpkmDir = new File(this.outDir, RnaJob.FPKM_DIR);
+        // Prepare the TPM subdirectory.
+        fpkmDir = new File(this.outDir, RnaJob.TPM_DIR);
         if (! fpkmDir.isDirectory()) {
-            log.info("Creating output FPKM subdirectory.");
+            log.info("Creating output TPM subdirectory.");
             FileUtils.forceMkdir(fpkmDir);
         }
         log.info("Samples will be copied to {}.", fpkmDir);
@@ -106,7 +106,7 @@ public class SampleDownloadProcessor extends BaseReportProcessor {
         Set<String> processed = Arrays.stream(this.fpkmDir.list()).collect(Collectors.toCollection(TreeSet::new));
         log.info("{} files already found in output directory.", processed.size());
         // Get all the files in the input directory, eliminating the ones already processed.
-        String remoteFolder = (this.inDir + "/" + RnaJob.FPKM_DIR);
+        String remoteFolder = (this.inDir + "/" + RnaJob.TPM_DIR);
         DirTask lister = new DirTask(this.workDir, this.workspace);
         Set<String> files = lister.list(remoteFolder).stream().map(x -> x.getName())
                 .filter(x -> ! processed.contains(x)).collect(Collectors.toSet());

@@ -42,16 +42,18 @@ public class RnaJob implements Comparable<RnaJob> {
     private Phase phase;
     /** alignment genome */
     private String alignmentGenomeId;
-    /** name of the FPKM directory */
-    public static final String FPKM_DIR = "FPKM";
-    /** name of the FPKM output file in the job folder */
-    private static final String FPKM_FILE_NAME = "Tuxedo_0_replicate1_genes.fpkm_tracking";
+    /** name of the TPM directory */
+    public static final String TPM_DIR = "Output";
+    /** name of the job directory */
+    public static final String JOB_DIR = "Jobs";
+    /** name of the TPM output file in the job folder */
+    private static final String TPM_FILE_NAME = "tpm_counts_matrix.tsv";
 
     /**
      * Enumeration for job phases
      */
     public enum Phase {
-        TRIM("_fq"), ALIGN("_rna"), COPY("_genes.fpkm"), DONE("");
+        TRIM("_fq"), ALIGN("_rna"), COPY("_genes.tpm"), DONE("");
 
         private String suffix;
 
@@ -196,7 +198,7 @@ public class RnaJob implements Comparable<RnaJob> {
             this.taskId = aligner.start();
             break;
         case COPY:
-            this.copyFpkmFile(workDir, workspace);
+            this.copyTpmFile(workDir, workspace);
             break;
         case DONE:
             // Nothing to do here.
@@ -204,35 +206,35 @@ public class RnaJob implements Comparable<RnaJob> {
     }
 
     /**
-     * Perform the COPY task, which copies the FPKM and SAMSTAT files from the RNA job folder to the FPKM folder.
+     * Perform the COPY task, which copies the TPM and SAMSTAT files from the RNA job folder to the TPM folder.
      *
      * @param workDir		work directory for temporary files
      * @param workspace		workspace name
      */
-    private void copyFpkmFile(File workDir, String workspace) {
+    private void copyTpmFile(File workDir, String workspace) {
         // Compute the source directory for the copy.
-        String sourceDir = this.outDir + "/." + Phase.ALIGN.getOutputName(this.name);
+        String sourceDir = this.getOutDir() + "/." + Phase.ALIGN.getOutputName(this.name);
         // Verify the files both exist.
         DirTask verify = new DirTask(workDir, workspace);
         List<DirEntry> files = verify.list(sourceDir);
         String samStatName = this.samstatName();
         boolean foundSamStat = false;
-        boolean foundFpkm = false;
+        boolean foundTpm = false;
         for (DirEntry file : files) {
             if (file.getName().contentEquals(samStatName))
                 foundSamStat = true;
-            else if (file.getName().contentEquals(FPKM_FILE_NAME))
-                foundFpkm = true;
+            else if (file.getName().contentEquals(TPM_FILE_NAME))
+                foundTpm = true;
         }
-        if (! foundSamStat || ! foundFpkm)
+        if (! foundSamStat || ! foundTpm)
             log.warn("RNA job did not complete for {}:  files missing.", this.name);
         else {
             CopyTask copier = new CopyTask(workDir, workspace);
-            // We have to copy two files:  the SAMSTAT HTML file and the FPKM file.
-            String sourceFile1 = this.outDir + "/." + Phase.ALIGN.getOutputName(this.name) + "/" + this.samstatName();
-            String sourceFile2 = this.outDir + "/." + Phase.ALIGN.getOutputName(this.name) + "/" + FPKM_FILE_NAME;
-            String targetFile1 = this.outDir + "/" + FPKM_DIR + "/" + this.name + ".samstat.html";
-            String targetFile2 = this.outDir + "/" + FPKM_DIR + "/" + Phase.COPY.getOutputName(this.name);
+            // We have to copy two files:  the SAMSTAT HTML file and the TPM file.
+            String sourceFile1 = this.getOutDir() + "/." + Phase.ALIGN.getOutputName(this.name) + "/" + this.samstatName();
+            String sourceFile2 = this.getOutDir() + "/." + Phase.ALIGN.getOutputName(this.name) + "/" + this.countName();
+            String targetFile1 = this.getCopyDir() + "/" + this.name + ".report.html";
+            String targetFile2 = this.getCopyDir() + "/" + Phase.COPY.getOutputName(this.name);
             log.info("Copying remote file {} to {}.", sourceFile1, targetFile1);
             copier.copyRemoteFile(sourceFile1, targetFile1);
             log.info("Copying remote file {} to {}.", sourceFile2, targetFile2);
@@ -246,7 +248,14 @@ public class RnaJob implements Comparable<RnaJob> {
      * @return the name of the samstat file for this RNA Seq sample.
      */
     private String samstatName() {
-        return "Tuxedo_0_replicate1_" + this.source.getLeftName(this.name) + "_" + this.source.getRightName(this.name) + ".bam.samstat.html";
+        return "bvbrc_rnaseq_report.html";
+    }
+
+    /**
+     * @return the name of the count file for this RNA Seq sample.
+     */
+    private String countName() {
+        return "tpm_counts_matrix.tsv";
     }
 
     /**
@@ -266,7 +275,14 @@ public class RnaJob implements Comparable<RnaJob> {
      * @return the output directory name
      */
     public String getOutDir() {
-        return this.outDir;
+        return this.outDir + "/" + JOB_DIR;
+    }
+
+    /**
+     * @return the copy directory name
+     */
+    public String getCopyDir() {
+        return this.outDir + "/" + TPM_DIR;
     }
 
     /**

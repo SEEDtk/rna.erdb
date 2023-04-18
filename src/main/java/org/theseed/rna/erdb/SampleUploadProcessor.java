@@ -206,35 +206,25 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
             // The main content of this file is the expression levels (feat_data, feat_count).
             // Each feature is on a line by itself, and we store its level in the following array.
             final int n = this.getFeatureCount();
-            // Get the columns of the key data fields.
-            // TODO new columns
-            int fidCol = inStream.findField("tracking_id");
-            int tpmCol = inStream.findField("TPM");
-            int okCol = inStream.findField("TPM_status");
-            // First, create a map of feature IDs to expression levels.  Only levels that are OK
-            // will be accepted.  We also compute a scale factor.  Each level will be scaled by
-            // 1 million over the total of all the levels.
-            double total = 0.0;
+            // Get the columns of the key data fields.  Note that the result column name is no longer
+            // constant, but its position is fixed.
+            int fidCol = inStream.findField("Gene_id");
+            int tpmCol = 1;
+            // First, create a map of feature IDs to expression levels.
             Map<String, Double> levels = new HashMap<String, Double>(n * 4 / 3);
             for (TabbedLineReader.Line line : inStream) {
-                String ok = line.get(okCol);
-                if (ok.contentEquals("OK")) {
-                    double tpm = line.getDouble(tpmCol);
-                    if (tpm > 0.0) {
-                        String fid = line.get(fidCol);
-                        levels.put(fid, tpm);
-                        total += tpm;
-                    }
+                double tpm = line.getDouble(tpmCol);
+                if (tpm > 0.0) {
+                    String fid = line.get(fidCol);
+                    levels.put(fid, tpm);
                 }
             }
             // The feature count and percent are computed from the map size.
             jobLoader.set("feat_count", levels.size());
             retVal = levels.size() * 100.0 / n;
-            // Compute the scale factor.
-            final double scale = (total == 0.0) ? 1.0 : (1000000.0 / total);
             // Create the feature-data array.
             double[] featData = IntStream.range(0, n)
-                    .mapToDouble(i -> levels.getOrDefault(this.getFeatureId(i), Double.NaN) * scale)
+                    .mapToDouble(i -> levels.getOrDefault(this.getFeatureId(i), Double.NaN))
                     .toArray();
             jobLoader.set("feat_data", featData);
         }

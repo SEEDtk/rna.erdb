@@ -27,8 +27,8 @@ import org.theseed.utils.ParseFailureException;
  * This command downloads all the samples from a PATRIC RNA-seq processing directory and produces a metadata file for them.
  * This is designed specifically for NCBI samples, so that they can be efficiently processed by FpmkSummaryProcessor.
  *
- * The positional parameters are the name of the PATRIC directory (generally ending in "/TPM"), the PATRIC workspace ID, and
- * the name of the local output directory.  The samples will be downloaded into a subdirectory named TPM.  The output file will
+ * The positional parameters are the name of the PATRIC directory (generally ending in "/Output"), the PATRIC workspace ID, and
+ * the name of the local output directory.  The samples will be downloaded into a subdirectory named "Output".  The output file will
  * be produced on the standard output.
  *
  * The command-line options are as follows:

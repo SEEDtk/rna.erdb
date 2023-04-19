@@ -5,6 +5,7 @@ package org.theseed.rna.erdb;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.cli.CliTaskException;
 import org.theseed.cli.DirEntry;
 import org.theseed.cli.DirTask;
 import org.theseed.cli.MkDirTask;
@@ -80,6 +82,10 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
     private RnaSeqGroup sourceGroup;
     /** job retry counter */
     private CountMap<String> retryCounts;
+    /** number of failed jobs */
+    private int failCount;
+    /** number of completed jobs */
+    private int doneCount;
 
     // COMMAND-LINE OPTIONS
 
@@ -187,6 +193,9 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
     protected void runCommand() throws Exception {
         // Initialize the retry counter.
         this.retryCounts = new CountMap<String>();
+        // Initialize the counters.
+        this.failCount = 0;
+        this.doneCount = 0;
         // Initialize the utility tasks.
         this.dirTask = new DirTask(this.workDir, this.workspace);
         this.statusTask = new StatusTask(this.limit, this.workDir, this.workspace);
@@ -194,7 +203,7 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
         this.activeJobs = this.sourceGroup.getJobs(this.inDir);
         // Determine the completed jobs from the output directory.
         this.scanOutputDirectory();
-        // Now we have collected all the jobs.  Delete the ones that are incomplete.
+        // Now we have collected all the jobs.  Delete the ones that do not have read files or an SRA.
         log.info("{} jobs found in input directory.", this.activeJobs.size());
         Iterator<Map.Entry<String, RnaJob>> iter = this.activeJobs.entrySet().iterator();
         while (iter.hasNext()) {
@@ -202,9 +211,11 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
             if (! job.isPrepared())
                 iter.remove();
         }
-        log.info("{} jobs remaining after incomplete jobs removed.", this.activeJobs.size());
+        log.info("{} jobs remaining after unprepared jobs removed.", this.activeJobs.size());
         // Now we have a list of active jobs and their current state.  Check for existing jobs.
         this.checkRunningJobs();
+        // Record the start time.
+        long start = System.currentTimeMillis();
         // Loop until all jobs are done or we exceed the iteration limit.
         int remaining = this.maxIter;
         Set<RnaJob> incomplete = this.getIncomplete();
@@ -216,6 +227,9 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
             log.info("Sleeping. {} cycles left.", remaining);
             Thread.sleep(this.waitInterval);
         }
+        // Note we log the time spent.
+        Duration d = Duration.ofMillis(System.currentTimeMillis() - start);
+        log.info("All done.  {} jobs failed, {} completed in {}.", this.failCount, this.doneCount, d.toString());
     }
 
     /**
@@ -252,6 +266,7 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
                             retries);
                     activeTasks.remove(taskId);
                     job.setFailed();
+                    this.failCount++;
                 } else {
                     log.warn("Job {} failed in phase {}.  Retrying.", jobName, job.getPhase());
                     job.startTask(this.workDir, this.workspace);
@@ -266,6 +281,8 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
                 // If it is not done, denote it needs a task.
                 if (! done)
                     needsTask.add(job);
+                else
+                    this.doneCount++;
                 break;
             default :
                 // Here the job is still in progress.
@@ -278,7 +295,13 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
         while (iter.hasNext() && remaining > 0) {
             RnaJob job = iter.next();
             log.info("Starting job {} phase {}.", job.getName(), job.getPhase());
-            job.startTask(this.workDir, this.workspace);
+            try {
+                job.startTask(this.workDir, this.workspace);
+            } catch (CliTaskException e) {
+                // The job errored out internally.  Terminate it and record a failure.
+                this.failCount++;
+                job.setFailed();
+            }
             if (! job.needsTask()) remaining--;
         }
     }
@@ -369,7 +392,7 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
         log.info("Scanning {} folder in {}.", RnaJob.TPM_DIR, this.outDir);
         List<DirEntry> outputFiles = this.dirTask.list(this.outDir + "/" + RnaJob.TPM_DIR);
         for (DirEntry outputFile : outputFiles) {
-            if (outputFile.getType() == DirEntry.Type.TEXT) {
+            if (outputFile.getType() != DirEntry.Type.FOLDER) {
                 String fileName = outputFile.getName();
                 String jobName = RnaJob.Phase.COPY.checkSuffix(fileName);
                 if (jobName != null) {

@@ -8,6 +8,7 @@ import org.theseed.utils.BaseProcessor;
  * Commands for utilities relating to RNA-Seq processing.
  *
  * tpm			run jobs to convert FASTQ files to TPM results
+ * groups		form a master group table from individual group files
  * metaLoad		load genome metadata into an SQL database
  * download		download a set of RNA results from PATRIC and produce a metadata file for them
  * upload		process RNA results from PATRIC and add them to a database
@@ -17,7 +18,6 @@ import org.theseed.utils.BaseProcessor;
  * baseline		set the baseline levels for particular genome
  * measureFix	add missing production data to a measurement input file
  * measureLoad	load measurements into an SQL database
- * dataFile		create an RNA data file from the samples in a project
  * corrReport	produce a report on feature correlations
  * dbReport		write a database report
  * neighbors	store the neighbor genes in the database
@@ -38,6 +38,9 @@ public class App
             break;
         case "tpm" :
             processor = new RnaSeqProcessor();
+            break;
+        case "groups" :
+            processor = new MetaGroupsProcessor();
             break;
         case "metaLoad" :
             processor = new MetaLoadProcessor();
@@ -74,9 +77,6 @@ public class App
             break;
         case "measureFix" :
             processor = new MeasureFixProcessor();
-            break;
-        case "dataFile" :
-            processor = new RnaDataFileProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

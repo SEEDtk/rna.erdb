@@ -220,7 +220,7 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
         int remaining = this.maxIter;
         Set<RnaJob> incomplete = this.getIncomplete();
         while (! incomplete.isEmpty() && remaining != 0) {
-            log.info("{} jobs in progress.", incomplete.size());
+            log.info("{} jobs in progress.  {} completed so far, {} failed.", incomplete.size(), this.doneCount, this.failCount);
             this.processJobs(incomplete);
             incomplete = this.getIncomplete();
             remaining--;
@@ -302,7 +302,10 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
                 this.failCount++;
                 job.setFailed();
             }
-            if (! job.needsTask()) remaining--;
+            if (! job.needsTask()) {
+                remaining--;
+                this.doneCount++;
+            }
         }
     }
 

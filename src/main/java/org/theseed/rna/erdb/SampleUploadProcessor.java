@@ -169,20 +169,25 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
                 } else {
                     log.info("Processing sample {} of {}: {}.", count, nSamples, sampleId);
                     // Find the data.
-                    double qual = this.processSamstat(jobLoader, samstatFile);
-                    double representation = this.processTpm(jobLoader, tpmFile);
-                    // Analyze the sample quality.
-                    boolean suspicious = (qual < this.minQualPct || representation < this.minFeaturePct);
-                    jobLoader.set("suspicious", suspicious);
-                    if (suspicious) {
-                        log.warn("Sample {} is suspicious: qual = {}, representation = {}.",
-                                sampleId, qual, representation);
-                        badSamples++;
+                    try {
+                        double qual = this.processSamstat(jobLoader, samstatFile);
+                        double representation = this.processTpm(jobLoader, tpmFile);
+                        // Analyze the sample quality.
+                        boolean suspicious = (qual < this.minQualPct || representation < this.minFeaturePct);
+                        jobLoader.set("suspicious", suspicious);
+                        if (suspicious) {
+                            log.warn("Sample {} is suspicious: qual = {}, representation = {}.",
+                                    sampleId, qual, representation);
+                            badSamples++;
+                        }
+                        // Set the project and the pubmed.
+                        this.computeProjectInfo(jobLoader, sampleId);
+                        // Insert the sample.
+                        jobLoader.insert();
+                    } catch (IOException e) {
+                        log.error("Bad output for sample {}: {}", sampleId, e.toString());
+                        skipped++;
                     }
-                    // Set the project and the pubmed.
-                    this.computeProjectInfo(jobLoader, sampleId);
-                    // Insert the sample.
-                    jobLoader.insert();
                 }
             }
             log.info("{} samples processed, {} skipped, {} were bad.", count, skipped, badSamples);

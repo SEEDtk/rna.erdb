@@ -41,6 +41,7 @@ import org.theseed.utils.ParseFailureException;
  * --workDir	working directory for temporary files (default is "Temp" in the current directory
  * --filter		if specified, the name tab-delimited file with headers containing sample IDs to download in the first column
  * 				(the default is to download them all)
+ * --clear		erase the output directory before processing
  *
  * @author Bruce Parrello
  *
@@ -67,6 +68,10 @@ public class SampleDownloadProcessor extends BaseProcessor {
     @Option(name = "--filter", metaVar = "samples.tbl", usage = "if specified, the name of a file with sample IDs to download")
     private File filterFile;
 
+    /** if specified, the output directory will be erased before processing */
+    @Option(name = "--clear", usage = "if specified, the output directory will be erased before processing")
+    private boolean clearFlag;
+
     /** PATRIC directory containing the samples */
     @Argument(index = 0, metaVar = "user@patricbrc.org/inputDirectory", usage = "PATRIC input directory for samples", required = true)
     private String inDir;
@@ -83,6 +88,7 @@ public class SampleDownloadProcessor extends BaseProcessor {
     protected void setDefaults() {
         this.workDir = new File(System.getProperty("user.dir"), "Temp");
         this.filterFile = null;
+        this.clearFlag = false;
     }
 
     @Override
@@ -117,6 +123,9 @@ public class SampleDownloadProcessor extends BaseProcessor {
         if (! this.tpmDir.isDirectory()) {
             log.info("Creating output TPM subdirectory.");
             FileUtils.forceMkdir(this.tpmDir);
+        } else if (this.clearFlag) {
+            log.info("Erasing output TPM subdirectory.");
+            FileUtils.cleanDirectory(this.tpmDir);
         }
         log.info("Samples will be copied to {}.", this.tpmDir);
         return true;

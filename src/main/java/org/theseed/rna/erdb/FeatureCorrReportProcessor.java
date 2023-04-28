@@ -65,7 +65,7 @@ public class FeatureCorrReportProcessor extends BaseFeatureCorrelationProcessor 
     }
 
     /** report type */
-    @Argument(index = 1, usage = "type of report to write")
+    @Argument(index = 1, usage = "type of report to write", required = true)
     private FeatureCorrReporter.Type reportType;
 
     @Override

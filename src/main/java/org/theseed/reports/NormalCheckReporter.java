@@ -69,20 +69,29 @@ public class NormalCheckReporter extends BaseRnaDbReporter {
         var ksTester = new KolmogorovSmirnovTest();
         // Start the report output.
         log.info("Writing output report.");
-        writer.println("fig_id\tmean\tstd_dev\tskewness\tkurtosis\tKS_p_value");
+        writer.println("fig_id\tbaseline\tgene_name\talias\tmean\tstd_dev\tskewness\tkurtosis\tKS_p_value\tassignment");
         // Loop through the features.
         int count = 0;
         for (int i = 0; i < n; i++) {
-            String fid = fIndex.getFeature(i).getFid();
+            FeatureData feat = fIndex.getFeature(i);
+            String fid = feat.getFid();
             var stats = statsArray[i];
+            // Get the basic statistics.
             double mean = stats.getMean();
             double sdev = stats.getStandardDeviation();
             double skew = stats.getSkewness();
             double kurt = stats.getKurtosis();
+            // Get the gene info.
+            String gene = feat.getGene();
+            if (gene == null) gene = "";
+            String alias = feat.getAlias();
+            if (alias == null) alias = "";
+            // Compute the distribution error.
             NormalDistribution dist = new NormalDistribution(mean, sdev);
             double kspv = ksTester.kolmogorovSmirnovTest(dist, stats.getValues());
             // Now write all this out.
-            writer.format("%s\t%8.2f\t%8.2f\t%8.2f\t%8.2f\t%8g%n", fid, mean, sdev, skew, kurt, kspv);
+            writer.format("%s\t%8.2f\t%s\t%s\t%8.2f\t%8.2f\t%8.2f\t%8.2f\t%8g\t%s%n", fid, feat.getBaseline(), gene,
+                    alias, mean, sdev, skew, kurt, kspv, feat.getAssignment());
             count++;
             if (log.isInfoEnabled() && count % 50 == 0)
                 log.info("{} features processed.", count);

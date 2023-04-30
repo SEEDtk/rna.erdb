@@ -3,6 +3,7 @@
  */
 package org.theseed.reports;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
@@ -11,6 +12,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.java.erdb.DbConnection;
+import org.theseed.utils.ParseFailureException;
 
 /**
  * This is the base class for RNA database reports.  Because these reports are extremely varied, there is
@@ -59,6 +61,11 @@ public abstract class BaseRnaDbReporter {
          */
         public String getProjectId();
 
+        /**
+         * @return the name of the sample correlation file
+         */
+        public File getSampleCorrFile();
+
     }
 
     /**
@@ -95,6 +102,11 @@ public abstract class BaseRnaDbReporter {
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new SampleMeasureReporter(processor, db);
             }
+        }, SAMPLE_CLUSTER_SUMMARY {
+            @Override
+            public BaseRnaDbReporter create(IParms processor, DbConnection db) throws ParseFailureException, IOException {
+                return new SampleClusterReporter(processor, db);
+            }
         };
 
         /**
@@ -102,8 +114,11 @@ public abstract class BaseRnaDbReporter {
          *
          * @param processor		controlling command processor
          * @param db			source database connection
+         *
+         * @throws IOException
+         * @throws ParseFailureException
          */
-        public abstract BaseRnaDbReporter create(IParms processor, DbConnection db);
+        public abstract BaseRnaDbReporter create(IParms processor, DbConnection db) throws IOException, ParseFailureException;
 
     }
 

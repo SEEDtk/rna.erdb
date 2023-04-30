@@ -41,6 +41,7 @@ import org.theseed.utils.ParseFailureException;
  * --sample		sample ID for GENE_DATA report
  * --gFilter	if specified, a CSV containing the genes to include in the GENE_DATA
  * 				report (the default is to include all genes)
+ * --sCorr		if specified, the name of a file containing the sample correlations
  * --proj		name of project of interest for MEASURE report
  *
  * @author Bruce Parrello
@@ -82,12 +83,17 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
     @Option(name = "--measure", aliases = { "--mType", "-m" }, metaVar = "thr_g/L", usage = "measurement type to display for measurement reports")
     private String mType;
 
+    /** sample correlation file */
+    @Option(name = "--sCorr", metaVar = "clusters.tbl", usage = "sample correlation file for sample-cluster reports")
+    private File sampleCorrFile;
+
     @Override
     protected final void setDbDefaults() {
         this.outFile = null;
         this.geneFilterFile = null;
         this.projectId = null;
         this.mType = "none";
+        this.sampleCorrFile = null;
     }
 
     @Override
@@ -147,6 +153,11 @@ public class DbRnaReportProcessor extends BaseDbRnaProcessor implements BaseRnaD
     @Override
     public String getProjectId() {
         return this.projectId;
+    }
+
+    @Override
+    public File getSampleCorrFile() {
+        return this.sampleCorrFile;
     }
 
 

@@ -63,7 +63,7 @@ public class RnaFeature {
      * @param genomeId	ID of target genome
      * @param filter	feature filter to apply
      *
-     * @return a set of features to use
+     * @return a map of feature IDs to descriptors for the features to use
      *
      * @throws SQLException
      */

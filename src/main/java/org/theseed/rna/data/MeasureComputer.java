@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.rna.erdb;
+package org.theseed.rna.data;
 
 import java.io.File;
 import java.io.IOException;
@@ -9,12 +9,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.theseed.rna.erdb.MeasurementDesc;
 import org.theseed.utils.ParseFailureException;;
 
 /**
  * This is the base class for computing measurements of an RNA Seq expression data sample.
  * It is called by the loader to measurements for a sample, which are then queued for
  * loading.
+ *
  *
  * @author Bruce Parrello
  *

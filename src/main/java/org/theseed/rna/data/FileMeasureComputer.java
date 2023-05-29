@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.rna.erdb;
+package org.theseed.rna.data;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.io.TabbedLineReader;
+import org.theseed.rna.erdb.MeasurementDesc;
 import org.theseed.utils.ParseFailureException;
 
 /**

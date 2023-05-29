@@ -20,6 +20,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.genome.Genome;
@@ -49,6 +50,8 @@ import org.theseed.utils.ParseFailureException;
  * -v	display more frequent log messages
  * -o	output file (if not STDOUT)
  *
+ * --skipErrors		if specified, a group with a missing feature is simply skipped
+ *
  * @author Bruce Parrello
  *
  */
@@ -70,6 +73,10 @@ public class MetaGroupsProcessor extends BaseReportProcessor {
 
     // COMMAND-LINE OPTIONS
 
+    /** skip missing singletons */
+    @Option(name = "--skipErrors", usage = "if specified, a group with a missing feature is simply skipped")
+    private boolean skipErrors;
+
     /** name of the reference genome file */
     @Argument(index = 0, metaVar = "refGenome.gto", usage = "GTO for the reference genome", required = true)
     private File gtoFile;
@@ -81,6 +88,7 @@ public class MetaGroupsProcessor extends BaseReportProcessor {
     @Override
     protected void setReporterDefaults() {
         this.inFiles = new ArrayList<File>();
+        this.skipErrors = false;
     }
 
     @Override
@@ -118,6 +126,7 @@ public class MetaGroupsProcessor extends BaseReportProcessor {
             log.info("Processing input file {}.", inFile);
             try (TabbedLineReader inStream = new TabbedLineReader(inFile)) {
                 int inCount = 0;
+                int errCount = 0;
                 for (var line : inStream) {
                     inCount++;
                     // Get the group type and name.  The loader prefixes the genome ID, so we just record the raw name.
@@ -135,20 +144,26 @@ public class MetaGroupsProcessor extends BaseReportProcessor {
                             fids = Set.of(featName);
                         else {
                             fids = this.aliasMap.get(featName);
-                            if (fids == null)
-                                throw new ParseFailureException("Invalid feature specification \"" + featName + "\".");
-                        }
-                        // Assign this group to each of the features found.
-                        for (String fid : fids) {
-                            // Find the set for this group type for this feature.
-                            var typeMap = this.fidMap.computeIfAbsent(fid, x -> new TreeMap<String, Set<String>>());
-                            var groupSet = typeMap.computeIfAbsent(type, x -> new TreeSet<String>());
-                            groupSet.add(name);
+                            if (fids == null) {
+                                if (this.skipErrors) {
+                                    log.error("Invalid feature specification \"{}\" in group {}.", featName, name);
+                                    errCount++;
+                                } else
+                                    throw new ParseFailureException("Invalid feature specification \"" + featName + "\".");
+                            } else {
+                                // Assign this group to each of the features found.
+                                for (String fid : fids) {
+                                    // Find the set for this group type for this feature.
+                                    var typeMap = this.fidMap.computeIfAbsent(fid, x -> new TreeMap<String, Set<String>>());
+                                    var groupSet = typeMap.computeIfAbsent(type, x -> new TreeSet<String>());
+                                    groupSet.add(name);
+                                }
+                            }
                         }
                     }
                 }
-                log.info("{} lines read from {}.  Output map contains {} features in {} group types.", inCount, inFile,
-                        this.fidMap.size(), this.typeSet.size());
+                log.info("{} lines read from {}.  Output map contains {} features in {} group types.  {} errors found.", inCount, inFile,
+                        this.fidMap.size(), this.typeSet.size(), errCount);
             }
         }
         // Now we create the output file.  The file will have one row for each feature, and one column for each group type.

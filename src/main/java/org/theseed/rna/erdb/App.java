@@ -21,7 +21,7 @@ import org.theseed.utils.BaseProcessor;
  * corrReport	produce a report on feature correlations
  * dbReport		write a database report
  * neighbors	store the neighbor genes in the database
- * xmatrix		build a random-forest input directory for a specified measurement
+ * xmatrix		build a achine learning input directory for a specified measurement
  */
 public class App
 {

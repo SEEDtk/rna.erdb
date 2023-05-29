@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.rna.erdb;
+package org.theseed.rna.data;
 
 import org.theseed.samples.SampleId;
 

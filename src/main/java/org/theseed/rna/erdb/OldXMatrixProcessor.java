@@ -57,12 +57,12 @@ import org.theseed.utils.ParseFailureException;
  * @author Bruce Parrello
  *
  */
-public class XMatrixProcessor extends BaseDbRnaProcessor implements RnaFeatureFilter.IParms,
+public class OldXMatrixProcessor extends BaseDbRnaProcessor implements RnaFeatureFilter.IParms,
         RnaFeatureLevelComputer.IParms {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(XMatrixProcessor.class);
+    protected static Logger log = LoggerFactory.getLogger(OldXMatrixProcessor.class);
     /** map of feature IDs to descriptors */
     private Map<String, RnaFeature> fidData;
     /** collection of RNA samples */

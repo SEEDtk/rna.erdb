@@ -21,6 +21,8 @@ import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.Relop;
+import org.theseed.rna.data.FileMeasureComputer;
+import org.theseed.rna.data.MeasureComputer;
 import org.theseed.utils.ParseFailureException;
 
 /**

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import org.apache.commons.lang3.StringUtils;
 import org.theseed.counters.CountMap;
 import org.theseed.java.erdb.DbConnection;
 
@@ -40,10 +39,6 @@ public class FeatureClusterReporter extends BaseFeatureClusterReporter {
     private List<ContainerTag> clusterSections;
     /** buffer for building table cell contents */
     private StringBuilder cellBuilder;
-    /** URL for style sheet */
-    private static final String CSS_HREF = "https://core.theseed.org/SEEDtk/css/erdb.css";
-    /** HTML for a an empty table cell */
-    private static final ContainerTag EMPTY_CELL = td(rawHtml("&nbsp;"));
     /** separator for group elements */
     private static final String SEPARATOR = " <span style=\"background-color: #FFFF00; font-weight: bold\">|</span> ";
 
@@ -111,7 +106,7 @@ public class FeatureClusterReporter extends BaseFeatureClusterReporter {
                 var groups = feat.getGroups(type);
                 // If there are none, this table cell is empty.
                 if (groups.isEmpty())
-                    row.with(EMPTY_CELL);
+                    row.with(safe_td(null));
                 else {
                     // Count our membership in the groups.
                     CountMap<String> groupCounts = typeGroupCounts.computeIfAbsent(type, k -> new CountMap<String>());
@@ -166,23 +161,6 @@ public class FeatureClusterReporter extends BaseFeatureClusterReporter {
         if (typeCount > 0)
             section.with(groupSummary);
         this.clusterSections.add(section);
-    }
-
-    /**
-     * This is a utility method for building a table cell.  If the incoming string is null or blank,
-     * it will put in a non-breaking space.
-     *
-     * @param content	proposed content for a table cell
-     *
-     * @return a table cell containing the content
-     */
-    private static ContainerTag safe_td(String content) {
-        ContainerTag retVal;
-        if (StringUtils.isBlank(content))
-            retVal = EMPTY_CELL;
-        else
-            retVal = td(content);
-        return retVal;
     }
 
 }

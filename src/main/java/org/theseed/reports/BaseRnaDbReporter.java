@@ -3,16 +3,22 @@
  */
 package org.theseed.reports;
 
+import static j2html.TagCreator.rawHtml;
+import static j2html.TagCreator.td;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.utils.ParseFailureException;
+
+import j2html.tags.ContainerTag;
 
 /**
  * This is the base class for RNA database reports.  Because these reports are extremely varied, there is
@@ -30,6 +36,12 @@ public abstract class BaseRnaDbReporter {
     private DbConnection db;
     /** genome ID for the genome of interest */
     private String genomeId;
+    /** URL for style sheet */
+    protected static final String CSS_HREF = "https://core.theseed.org/SEEDtk/css/erdb.css";
+    /** URL format for pubmed IDs */
+    protected static String PUBMED_URL = "https://pubmed.ncbi/nlm.nih.gov/%s/";
+    /** HTML for a an empty table cell */
+    private static final ContainerTag EMPTY_CELL = td(rawHtml("&nbsp;"));
 
     /**
      * This interface is used by the reports to get additional parameters from the controlling command processor
@@ -72,37 +84,57 @@ public abstract class BaseRnaDbReporter {
      * This enumeration lists the report types.
      */
     public enum Type {
+        /** display statistics for each feature cluster */
         FID_CLUSTER_SUMMARY {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new FeatureClusterSummaryReporter(processor, db);
             }
-        }, FEATURE_CLUSTER {
+        },
+        /** feature cluster web page */
+        FEATURE_CLUSTER {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new FeatureClusterReporter(processor, db);
             }
-        }, NORMAL_CHECK {
+        },
+        /** list the value distribution of expression levels for features */
+        NORMAL_CHECK {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new NormalCheckReporter(processor, db);
             }
-        }, GENE_DATA {
+        },
+        /** generate a gene data load file from a sample that can be used with an Escher map */
+        GENE_DATA {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new GeneDataReporter(processor, db);
             }
-        }, SAMPLES {
+        },
+        /** list the available samples for a genome */
+        SAMPLES {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new SampleListReporter(processor, db);
             }
-        }, MEASURED {
+        },
+        /** list all the samples for a genome and include a specified measurement value */
+        MEASURED {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) {
                 return new SampleMeasureReporter(processor, db);
             }
-        }, SAMPLE_CLUSTER_SUMMARY {
+        },
+        /** generate a web page of a genome's samples with links to the pubmed articles (when available) */
+        PUBMED_LINKS {
+            @Override
+            public BaseRnaDbReporter create(IParms processor, DbConnection db) {
+                return new PubmedLinkReporter(processor, db);
+            }
+        },
+        /** generate a summary report for the sample clusters */
+        SAMPLE_CLUSTER_SUMMARY {
             @Override
             public BaseRnaDbReporter create(IParms processor, DbConnection db) throws ParseFailureException, IOException {
                 return new SampleClusterReporter(processor, db);
@@ -167,6 +199,23 @@ public abstract class BaseRnaDbReporter {
      */
     protected FeatureIndex getFeatureIndex() throws SQLException {
         return new FeatureIndex(this.db, this.genomeId);
+    }
+
+    /**
+     * This is a utility method for building a table cell.  If the incoming string is null or blank,
+     * it will put in a non-breaking space.
+     *
+     * @param content	proposed content for a table cell
+     *
+     * @return a table cell containing the content
+     */
+    protected static ContainerTag safe_td(String content) {
+        ContainerTag retVal;
+        if (StringUtils.isBlank(content))
+            retVal = EMPTY_CELL;
+        else
+            retVal = td(content);
+        return retVal;
     }
 
 }

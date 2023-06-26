@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.java.erdb.DbConnection;
+import org.theseed.java.erdb.DbRecord;
 import org.theseed.utils.ParseFailureException;
 
 import j2html.tags.ContainerTag;
@@ -199,6 +200,17 @@ public abstract class BaseRnaDbReporter {
      */
     protected FeatureIndex getFeatureIndex() throws SQLException {
         return new FeatureIndex(this.db, this.genomeId);
+    }
+
+    /**
+     * @return the name of the base genome
+     *
+     * @throws SQLException
+     */
+    protected String getGenomeName() throws SQLException {
+        DbRecord genome = db.getRecord("Genome", genomeId);
+        String retVal = genome.getReportString("Genome.genome_name");
+        return retVal;
     }
 
     /**

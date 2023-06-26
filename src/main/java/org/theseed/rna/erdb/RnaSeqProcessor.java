@@ -52,13 +52,13 @@ import com.github.cliftonlabs.json_simple.JsonObject;
  * -p	pattern for FASTQ files; default is "(.+)_(R[12])_001\\.fastq"; used only by PATRIC_DIR sources
  * -l	identifier for left-read FASTQ files; default is "R1"; used only by PATRIC_DIR sources
  *
- * --maxIter	maximum number of loop iterations
- * --wait		number of minutes to wait
+ * --maxIter	maximum number of loop iterations (default 1000)
+ * --wait		number of minutes to wait (default 7)
  * --workDir	temporary working directory; default is "Temp" in the current directory
  * --limit		limit when querying the PATRIC task list (must be large enough to capture all of the running tasks); default 1000
- * --maxTasks	maximum number of tasks to run at one time
+ * --maxTasks	maximum number of tasks to run at one time (default 200)
  * --source		type of RNA Seq source; the default is PATRIC_DIR
- * --retries	maximum number of retries per job
+ * --retries	maximum number of retries per job (default 3)
  *
  * @author Bruce Parrello
  *
@@ -148,8 +148,8 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
         this.workDir = new File(System.getProperty("user.dir"), "Temp");
         this.limit = 1000;
         this.wait = 7;
-        this.maxIter = 100;
-        this.maxTasks = 10;
+        this.maxIter = 1000;
+        this.maxTasks = 200;
         this.maxRetries = 3;
         this.sourceType = RnaSeqGroup.Type.PATRIC_DIR;
     }

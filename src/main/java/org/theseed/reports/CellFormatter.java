@@ -188,7 +188,7 @@ public abstract class CellFormatter {
     public static class PubMed extends CellFormatter {
 
         /** URL format for pubmed IDs */
-        protected static String PUBMED_URL = "https://pubmed.ncbi/nlm.nih.gov/%s/";
+        protected static String PUBMED_URL = "https://pubmed.ncbi.nlm.nih.gov/%s/";
 
         public PubMed(String header, String field) {
             super(header, field);

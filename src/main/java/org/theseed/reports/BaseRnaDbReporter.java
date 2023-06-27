@@ -37,10 +37,10 @@ public abstract class BaseRnaDbReporter {
     private DbConnection db;
     /** genome ID for the genome of interest */
     private String genomeId;
-    /** URL for style sheet */
-    protected static final String CSS_HREF = "https://core.theseed.org/SEEDtk/css/erdb.css";
+    /** URL for style sheet (DEBUG) */
+    protected static final String CSS_HREF = "https://arcanestuff.com/css/erdb.css"; // "https://core.theseed.org/SEEDtk/css/erdb.css";
     /** URL format for pubmed IDs */
-    protected static String PUBMED_URL = "https://pubmed.ncbi/nlm.nih.gov/%s/";
+    protected static String PUBMED_URL = "https://pubmed.ncbi.nlm.nih.gov/%s/";
     /** HTML for a an empty table cell */
     private static final ContainerTag EMPTY_CELL = td(rawHtml("&nbsp;"));
 

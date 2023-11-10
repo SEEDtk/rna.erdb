@@ -14,9 +14,9 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.rna.erdb.MeasurementDesc;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This measurement computer gets the measurements from a tab-delimited file.  The first column

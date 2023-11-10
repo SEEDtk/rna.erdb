@@ -17,13 +17,13 @@ import java.util.TreeSet;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.counters.WeightMap;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.DbRecord;
 import org.theseed.java.erdb.Relop;
-import org.theseed.utils.ParseFailureException;
 import org.theseed.utils.StringPair;
 
 /**

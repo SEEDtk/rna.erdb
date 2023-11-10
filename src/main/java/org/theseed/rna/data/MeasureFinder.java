@@ -9,7 +9,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.theseed.utils.ParseFailureException;
+import org.theseed.basic.ParseFailureException;
 
 /**
  * This is the base class for computing the measurement of an RNA sample.  Currently, we only accept measurements

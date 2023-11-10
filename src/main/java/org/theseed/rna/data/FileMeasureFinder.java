@@ -6,8 +6,8 @@ package org.theseed.rna.data;
 import java.io.IOException;
 import java.util.Map;
 
+import org.theseed.basic.ParseFailureException;
 import org.theseed.io.TabbedLineReader;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This measurement finder reads the measurements from a file.  The input file must be tab-delimited, with headers, and

@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.DbRecord;
@@ -15,7 +16,6 @@ import org.theseed.java.erdb.DbUpdate;
 import org.theseed.java.erdb.Relop;
 import org.theseed.rna.baseline.DbBaselineComputer;
 import org.theseed.rna.baseline.DbBaselineComputer.IParms;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command computes the baseline level for each feature in a particular genome.  We read in

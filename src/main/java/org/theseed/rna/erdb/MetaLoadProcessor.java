@@ -21,6 +21,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.erdb.utils.BaseDbProcessor;
 import org.theseed.erdb.utils.DbCollectors;
 import org.theseed.genome.Feature;
@@ -30,7 +31,6 @@ import org.theseed.io.TabbedLineReader;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
 import org.theseed.java.erdb.DbQuery;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command loads the metadata for a genome into an RNA Seq database.  If the genome is

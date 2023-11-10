@@ -9,12 +9,12 @@ import java.sql.SQLException;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.clusters.Cluster;
 import org.theseed.clusters.ClusterGroup;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
 import org.theseed.java.erdb.SqlBuffer;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command computes the correlations between RNA expression levels for features in a genome and updates

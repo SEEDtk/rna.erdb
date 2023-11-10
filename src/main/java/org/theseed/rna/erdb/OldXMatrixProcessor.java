@@ -18,6 +18,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.io.MarkerFile;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.reports.NaturalSort;
@@ -25,7 +26,6 @@ import org.theseed.rna.data.RnaFeature;
 import org.theseed.rna.data.RnaFeatureFilter;
 import org.theseed.rna.data.RnaFeatureLevelComputer;
 import org.theseed.rna.data.RnaSample;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command builds a random-forest machine learning directory for the RNA data relating to a particular

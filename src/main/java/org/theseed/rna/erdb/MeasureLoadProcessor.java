@@ -16,6 +16,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.erdb.utils.BaseDbProcessor;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
@@ -23,7 +24,6 @@ import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.Relop;
 import org.theseed.rna.data.FileMeasureComputer;
 import org.theseed.rna.data.MeasureComputer;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command loads measurements into the RNA Seq database.  It takes as input a measurement

@@ -16,13 +16,13 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.erdb.utils.BaseDbReportProcessor;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.DbRecord;
 import org.theseed.java.erdb.Relop;
 import org.theseed.reports.RangeNormalizer;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command reads a genome's RNA samples from the database and outputs a correlation report.

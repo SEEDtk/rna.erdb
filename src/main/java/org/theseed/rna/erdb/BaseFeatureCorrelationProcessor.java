@@ -14,13 +14,13 @@ import org.apache.commons.math3.util.ResizableDoubleArray;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.clusters.ClusterGroup;
 import org.theseed.clusters.methods.ClusterMergeMethod;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.DbRecord;
 import org.theseed.java.erdb.Relop;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This is a command-processor superclass for computing RNA feature correlations.  The main method is

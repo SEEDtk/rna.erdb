@@ -9,8 +9,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.theseed.rna.erdb.MeasurementDesc;
-import org.theseed.utils.ParseFailureException;;
+import org.theseed.basic.ParseFailureException;
+import org.theseed.rna.erdb.MeasurementDesc;;
 
 /**
  * This is the base class for computing measurements of an RNA Seq expression data sample.

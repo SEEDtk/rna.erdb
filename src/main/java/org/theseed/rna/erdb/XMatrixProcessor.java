@@ -15,6 +15,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.DbRecord;
@@ -23,7 +24,6 @@ import org.theseed.rna.data.RnaFeatureFilter;
 import org.theseed.rna.data.MeasureFinder;
 import org.theseed.rna.data.RnaFeature;
 import org.theseed.rna.data.RnaFeatureLevelComputer;
-import org.theseed.utils.ParseFailureException;
 import org.theseed.reports.NaturalSort;
 import org.theseed.reports.XMatrixReporter;
 

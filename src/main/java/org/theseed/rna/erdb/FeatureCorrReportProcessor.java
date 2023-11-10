@@ -12,11 +12,11 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.clusters.ClusterGroup;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.reports.FeatureCorrReporter;
 import org.theseed.utils.FloatList;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command computes feature correlations (or optionally loads them from a file) and

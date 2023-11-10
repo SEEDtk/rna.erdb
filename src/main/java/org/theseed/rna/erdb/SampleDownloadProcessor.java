@@ -20,12 +20,12 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseProcessor;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.cli.CopyTask;
 import org.theseed.cli.DirTask;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.rna.jobs.RnaJob;
-import org.theseed.utils.BaseProcessor;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command downloads samples from a PATRIC RNA-seq processing directory.

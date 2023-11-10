@@ -20,6 +20,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.clusters.Cluster;
 import org.theseed.clusters.ClusterGroup;
 import org.theseed.clusters.methods.ClusterMergeMethod;
@@ -32,7 +33,6 @@ import org.theseed.java.erdb.DbRecord;
 import org.theseed.java.erdb.DbUpdate;
 import org.theseed.java.erdb.Relop;
 import org.theseed.java.erdb.SqlBuffer;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This is a very complicated database loader that updates the sample clusters for a genome in the

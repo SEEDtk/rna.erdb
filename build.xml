@@ -80,6 +80,7 @@
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/apache/pdfbox/fontbox/2.0.22/fontbox-2.0.22.jar"/>
             <fileset dir="${dir.workspace}/git/dl4j.utils/target/classes"/>
             <fileset dir="${dir.workspace}/git/brc.parent/shared/target/classes"/>
+            <fileset dir="${dir.workspace}/git/brc.parent/basic/target/classes"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/com/github/eprst/murmur3/0.3/murmur3-0.3.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/com/j2html/j2html/1.4.0/j2html-1.4.0.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="${env.HOME}/.m2/repository/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar"/>

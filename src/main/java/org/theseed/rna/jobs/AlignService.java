@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.List;
 
 import org.theseed.cli.CliService;
+import org.theseed.cli.CliTaskException;
 import org.theseed.cli.DirEntry;
 import org.theseed.cli.DirTask;
 import org.theseed.cli.RnaSource;
@@ -50,6 +51,10 @@ public class AlignService extends CliService {
                 else
                     throw new ArrayIndexOutOfBoundsException("Too many FASTQ files in directory " + outPath + ".");
             }
+        }
+        if (leftFile == null) {
+            // Here the trim failed, but the failure was not detected properly.  We force a failure in the alignment.
+            throw new CliTaskException(this, "Attempt to perform alignment after failure of the TRIM step.");
         }
         // Create the RNA source.
         RnaSource source = new RnaSource.Paired(leftFile, rightFile);

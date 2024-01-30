@@ -220,7 +220,7 @@ public class RnaJob implements Comparable<RnaJob> {
             log.warn("RNA job did not complete for {}:  files missing.", this.name);
         else {
             CopyTask copier = new CopyTask(workDir, workspace);
-            String targetFile1 = this.getCopyDir() + "/" + this.name + ".samstat.html";
+            String targetFile1 = this.getCopyDir() + "/" + this.name + ".samtools_stats";
             String targetFile2 = this.getCopyDir() + "/" + Phase.COPY.getOutputName(this.name);
             log.info("Copying remote file {} to {}.", sourceFile1, targetFile1);
             copier.copyRemoteFile(sourceFile1, targetFile1);
@@ -255,7 +255,7 @@ public class RnaJob implements Comparable<RnaJob> {
      * @return the name of the samstat file for this RNA Seq sample.
      */
     private String samstatName() {
-        return "no_condition/" + this.name + "/" + this.name + ".bam.samstat.html";
+        return "no_condition/" + this.name + "/" + this.name + ".samtools_stats";
     }
 
     /**

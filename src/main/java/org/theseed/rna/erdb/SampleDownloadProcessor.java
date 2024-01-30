@@ -56,7 +56,7 @@ public class SampleDownloadProcessor extends BaseProcessor {
     /** set of sample IDs to download, or NULL if there is no filtering */
     private Set<String> sampleSet;
     /** pattern for extracting sample ID from a file name */
-    private static final Pattern SAMPLE_PATTERN = Pattern.compile("(.+)(?:_genes\\.tpm|\\.samstat\\.html)");
+    private static final Pattern SAMPLE_PATTERN = Pattern.compile("(.+)(?:_genes\\.tpm|\\.samtools_stats)");
 
     // COMMAND-LINE OPTIONS
 

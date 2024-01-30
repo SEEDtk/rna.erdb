@@ -6,9 +6,10 @@ package org.theseed.rna.erdb;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,14 +21,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
+import org.theseed.io.LineReader;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
@@ -70,8 +69,12 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
     private Set<String> sampleSet;
     /** pattern for extracting sample ID */
     private static final Pattern TPM_FILE_PATTERN = Pattern.compile("(.+)_genes\\.tpm");
-    /** parser for SAMSTAT description */
-    protected static final Pattern SAMSTAT_STATS_LINE = Pattern.compile("(\\d+) reads,\\s+size:\\s*(\\d+).+created\\s+(\\d+-\\d+-\\d+).*");
+    /** parser for SAMSTAT length line */
+    protected static final Pattern SAMSTAT_LENGTH_LINE = Pattern.compile("SN\\s+total length:\\s+(\\d+)(?:\\s.+)?");
+    /** parser for SAMSTAT count line */
+    protected static final Pattern SAMSTAT_COUNT_LINE = Pattern.compile("SN\\s+1st fragments:\\s+(\\d+)");
+    /** parser for SAMSTAT quality line */
+    protected static final Pattern SAMSTAT_QUALITY_LINE = Pattern.compile("MAPQ\\s+(\\d+)\\s+(\\d+)");
 
     // COMMAND-LINE OPTIONS
 
@@ -159,7 +162,7 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
                 // Set the sample ID.
                 jobLoader.set("sample_id", sampleId);
                 // Get the data files.
-                File samstatFile = new File(this.inDir, sampleId + ".samstat.html");
+                File samstatFile = new File(this.inDir, sampleId + ".samtools_stats");
                 File tpmFile = new File(this.inDir, sampleId + "_genes.tpm");
                 // We know the TPM file exists because we used it to find the sample ID.  Check the
                 // SAMSTAT file.
@@ -240,7 +243,7 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
      * Fill the table loader with data from the SAMSTAT file.
      *
      * @param jobLoader		loader for the RnaSample table
-     * @param samstatFile	file containing the SAMSTAT report Html
+     * @param samstatFile	file containing the SAMSTAT tools data
      *
      * @return the percent of mappings with high quality
      *
@@ -248,27 +251,50 @@ public class SampleUploadProcessor extends BaseDbLoadProcessor {
      * @throws SQLException
      */
     private double processSamstat(DbLoader jobLoader, File samstatFile) throws IOException, SQLException {
-        Document samStat = Jsoup.parse(samstatFile, StandardCharsets.UTF_8.toString());
-        // First, we get the counts and the date from the description line.
-        Element description = samStat.selectFirst("h1 + p");
-        if (description == null)
-            throw new IOException("Missing description string in " + samstatFile + ".");
-        String descriptionText = description.text();
-        Matcher m = SAMSTAT_STATS_LINE.matcher(descriptionText);
-        if (! m.matches())
-            throw new IOException("Invalid description string in " + samstatFile + ".");
-        int readCount = Integer.valueOf(m.group(1));
-        double baseCount = (double) Long.valueOf(m.group(2));
-        LocalDate procDate = LocalDate.parse(m.group(3));
-        jobLoader.set("read_count", readCount);
+        // We will put the quality and read-count values in here.
+        int qualCount = 0;
+        int readCount = 0;
+        // These will contain the sample size in base pairs and the processing date.
+        double baseCount = 0;
+        LocalDate procDate = Instant.ofEpochMilli(samstatFile.lastModified()).atZone(ZoneId.systemDefault()).toLocalDate();
+        try (LineReader samstatStream = new LineReader(samstatFile)) {
+            for (String line : samstatStream) {
+                // Check for the base-pair count.
+                Matcher m;
+                if (baseCount == 0.0) {
+                    m = SAMSTAT_LENGTH_LINE.matcher(line);
+                    if (m.matches())
+                        baseCount = Double.valueOf(m.group(1));
+                }
+                // Check for a read count.
+                if (readCount == 0) {
+                    m = SAMSTAT_COUNT_LINE.matcher(line);
+                    if (m.matches())
+                        readCount = Integer.valueOf(m.group(1));
+                }
+                // Check for a mapping count.
+                m = SAMSTAT_QUALITY_LINE.matcher(line);
+                if (m.matches()) {
+                    int qual = Integer.valueOf(m.group(1));
+                    if (qual >= 30) {
+                        int count = Integer.valueOf(m.group(2));
+                        qualCount += count;
+                    }
+                }
+            }
+        }
+        if (baseCount == 0.0)
+            throw new IOException("Base-pair count not found in " + samstatFile + ".");
+        // Compute the final quality.  It is the percentage of quality reads in the total reads.
+        double retVal;
+        if (readCount <= 0)
+            retVal = 0.0;
+        else
+            retVal = (100.0 * qualCount) / readCount;
         jobLoader.set("base_count", baseCount);
         jobLoader.set("process_date", procDate);
-        // Now get the quality table.
-        Element qualCell = samStat.selectFirst("tr:contains(MAPQ >= 30) > td:last-of-type");
-        if (qualCell == null)
-            throw new IOException("Missing quality table row for MAPQ >+ 30 in " + samstatFile + ".");
-        double retVal = Double.valueOf(qualCell.text());
         jobLoader.set("quality", retVal);
+        jobLoader.set("read_count", readCount);
         return retVal;
     }
 

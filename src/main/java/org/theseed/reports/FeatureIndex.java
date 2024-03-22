@@ -10,11 +10,11 @@ import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.theseed.counters.Shuffler;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbQuery;
 import org.theseed.java.erdb.DbRecord;
 import org.theseed.java.erdb.Relop;
+import org.theseed.stats.Shuffler;
 
 /**
  * This object manages all the features in a genome for reporting purposes.  It contains

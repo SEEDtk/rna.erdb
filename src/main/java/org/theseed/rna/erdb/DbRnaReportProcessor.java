@@ -16,11 +16,11 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseReportProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.LineReader;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.reports.BaseRnaDbReporter;
-import org.theseed.utils.BaseReportProcessor;
 
 /**
  * This is a general command for producing database reports.

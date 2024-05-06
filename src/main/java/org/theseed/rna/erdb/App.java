@@ -22,6 +22,7 @@ import org.theseed.basic.BaseProcessor;
  * dbReport		write a database report
  * neighbors	store the neighbor genes in the database
  * xmatrix		build a achine learning input directory for a specified measurement
+ * dbStats		show basic database statistics
  */
 public class App
 {
@@ -77,6 +78,9 @@ public class App
             break;
         case "measureFix" :
             processor = new MeasureFixProcessor();
+            break;
+        case "dbStats" :
+            processor = new RnaDbStatsProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);

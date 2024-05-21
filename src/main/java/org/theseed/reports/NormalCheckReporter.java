@@ -76,25 +76,28 @@ public class NormalCheckReporter extends BaseRnaDbReporter {
             FeatureData feat = fIndex.getFeature(i);
             String fid = feat.getFid();
             var stats = statsArray[i];
-            // Get the basic statistics.
-            double mean = stats.getMean();
-            double sdev = stats.getStandardDeviation();
-            double skew = stats.getSkewness();
-            double kurt = stats.getKurtosis();
-            // Get the gene info.
-            String gene = feat.getGene();
-            if (gene == null) gene = "";
-            String alias = feat.getAlias();
-            if (alias == null) alias = "";
-            // Compute the distribution error.
-            NormalDistribution dist = new NormalDistribution(mean, sdev);
-            double kspv = ksTester.kolmogorovSmirnovTest(dist, stats.getValues());
-            // Now write all this out.
-            writer.format("%s\t%8.2f\t%s\t%s\t%8.2f\t%8.2f\t%8.2f\t%8.2f\t%8g\t%s%n", fid, feat.getBaseline(), gene,
-                    alias, mean, sdev, skew, kurt, kspv, feat.getAssignment());
-            count++;
-            if (log.isInfoEnabled() && count % 50 == 0)
-                log.info("{} features processed.", count);
+            // Only process features with expression data.
+            if (stats.getN() > 0) {
+                // Get the basic statistics.
+                double mean = stats.getMean();
+                double sdev = stats.getStandardDeviation();
+                double skew = stats.getSkewness();
+                double kurt = stats.getKurtosis();
+                // Get the gene info.
+                String gene = feat.getGene();
+                if (gene == null) gene = "";
+                String alias = feat.getAlias();
+                if (alias == null) alias = "";
+                // Compute the distribution error.
+                NormalDistribution dist = new NormalDistribution(mean, sdev);
+                double kspv = ksTester.kolmogorovSmirnovTest(dist, stats.getValues());
+                // Now write all this out.
+                writer.format("%s\t%8.2f\t%s\t%s\t%8.2f\t%8.2f\t%8.2f\t%8.2f\t%8g\t%s%n", fid, feat.getBaseline(), gene,
+                        alias, mean, sdev, skew, kurt, kspv, feat.getAssignment());
+                count++;
+                if (log.isInfoEnabled() && count % 50 == 0)
+                    log.info("{} features processed.", count);
+            }
         }
     }
 

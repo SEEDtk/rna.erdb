@@ -93,9 +93,11 @@ public class GenomeBaselineProcessor extends BaseDbRnaProcessor implements IParm
                 // Loop through the feature index.
                 for (int i = 0; i < baselines.length; i++) {
                     String fid = this.getFeatureId(i);
-                    updater.set("baseline", baselines[i]);
-                    updater.set("fig_id", fid);
-                    updater.update();
+                    if (Double.isFinite(baselines[i])) {
+                        updater.set("baseline", baselines[i]);
+                        updater.set("fig_id", fid);
+                        updater.update();
+                    }
                 }
             }
             xact.commit();

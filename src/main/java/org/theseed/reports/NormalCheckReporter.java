@@ -89,8 +89,11 @@ public class NormalCheckReporter extends BaseRnaDbReporter {
                 String alias = feat.getAlias();
                 if (alias == null) alias = "";
                 // Compute the distribution error.
-                NormalDistribution dist = new NormalDistribution(mean, sdev);
-                double kspv = ksTester.kolmogorovSmirnovTest(dist, stats.getValues());
+                double kspv = 0.0;
+                if (sdev > 0.0) {
+                    NormalDistribution dist = new NormalDistribution(mean, sdev);
+                    kspv = ksTester.kolmogorovSmirnovTest(dist, stats.getValues());
+                }
                 // Now write all this out.
                 writer.format("%s\t%8.2f\t%s\t%s\t%8.2f\t%8.2f\t%8.2f\t%8.2f\t%8g\t%s%n", fid, feat.getBaseline(), gene,
                         alias, mean, sdev, skew, kurt, kspv, feat.getAssignment());

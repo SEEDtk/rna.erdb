@@ -134,6 +134,14 @@ public abstract class BaseRnaDbReporter {
                 return new PubmedLinkReporter(processor, db);
             }
         },
+        /** generate a spreadsheet of features and expression levels */
+        FEATURE_SHEET {
+            @Override
+            public BaseRnaDbReporter create(IParms processor, DbConnection db)
+                    throws IOException, ParseFailureException {
+                return new FeatureSheetReporter(processor, db);
+            }
+        },
         /** generate a summary report for the sample clusters */
         SAMPLE_CLUSTER_SUMMARY {
             @Override

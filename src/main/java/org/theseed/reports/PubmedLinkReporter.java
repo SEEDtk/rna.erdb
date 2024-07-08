@@ -39,11 +39,11 @@ public class PubmedLinkReporter extends BaseRnaDbReporter {
     private static final List<CellFormatter> COLUMNS = List.of(
             new CellFormatter.Text("Sample ID", "RnaSample.sample_id"),
             new CellFormatter.Text("Project ID", "RnaSample.project_id"),
+            new CellFormatter.Text("Cluster ID", "RnaSample.cluster_id"),
             new CellFormatter.PubMed("Pubmed Link", "RnaSample.pubmed"),
             new CellFormatter.Count("Base Pairs", "RnaSample.base_count"),
             new CellFormatter.Count("Features Mapped", "RnaSample.feat_count"),
-            new CellFormatter.Count("Num Reads", "RnaSample.read_count"),
-            new CellFormatter.Percent("% Quality", "RnaSample.quality")
+            new CellFormatter.Count("Num Reads", "RnaSample.read_count")
         );
 
     /**
@@ -75,10 +75,10 @@ public class PubmedLinkReporter extends BaseRnaDbReporter {
             // Filter for the target genome.
             query.rel("RnaSample.genome_id", Relop.EQ);
             query.setParm(1, this.genomeId);
-            // Insure there is a pubmed link.
-            query.isNull("RnaSample.pubmed", false);
-            // Sort by project ID.
-            query.orderBy("RnaSample.project_id");
+            // Insure there is a cluster ID.
+            query.isNull("RnaSample.cluster_id", false);
+            // Sort by cluster ID.
+            query.orderBy("RnaSample.cluster_id");
             // Loop through the samples, creating a table row for each one.
             int dbCount = 0;
             var iter = query.iterator();
@@ -90,9 +90,9 @@ public class PubmedLinkReporter extends BaseRnaDbReporter {
             }
             log.info("{} samples found for {}.", dbCount, this.genomeId);
             // Format a web page for the table.
-            ContainerTag head = head().with(title("PUBMED-Linked Sample List for " + this.getGenomeId()))
+            ContainerTag head = head().with(title("Good-Sample List for " + this.getGenomeId()))
                     .with(link().withHref(CSS_HREF).withRel("stylesheet").withType("text/css"));
-            ContainerTag heading = h1("Sample List for " + this.getGenomeName());
+            ContainerTag heading = h1("Good Samples for " + this.getGenomeName());
             ContainerTag body = body().with(heading).with(table);
             ContainerTag page = html().with(head, body);
             log.info("Writing web page.");

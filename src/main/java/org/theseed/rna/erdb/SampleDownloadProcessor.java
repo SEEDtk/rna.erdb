@@ -92,7 +92,7 @@ public class SampleDownloadProcessor extends BaseProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Verify we have a work directory.
         if (! this.workDir.isDirectory()) {
             log.info("Creating work directory {}.", this.workDir);
@@ -128,7 +128,6 @@ public class SampleDownloadProcessor extends BaseProcessor {
             FileUtils.cleanDirectory(this.tpmDir);
         }
         log.info("Samples will be copied to {}.", this.tpmDir);
-        return true;
     }
 
     @Override

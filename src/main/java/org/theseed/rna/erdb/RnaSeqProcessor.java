@@ -155,7 +155,7 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         if (! this.workDir.isDirectory()) {
             log.info("Creating work directory {}.", this.workDir);
             FileUtils.forceMkdir(this.workDir);
@@ -186,13 +186,12 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
         // Verify the task limit.
         if (this.maxTasks < 1)
             throw new ParseFailureException("Maximum number of tasks must be > 0.");
-        return true;
     }
 
     @Override
     protected void runCommand() throws Exception {
         // Initialize the retry counter.
-        this.retryCounts = new CountMap<String>();
+        this.retryCounts = new CountMap<>();
         // Initialize the counters.
         this.failCount = 0;
         this.doneCount = 0;
@@ -225,11 +224,21 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
             incomplete = this.getIncomplete();
             remaining--;
             log.info("Sleeping. {} cycles left.", remaining);
-            Thread.sleep(this.waitInterval);
+            this.pause();
         }
         // Note we log the time spent.
         Duration d = Duration.ofMillis(System.currentTimeMillis() - start);
         log.info("All done.  {} jobs failed, {} completed in {}.", this.failCount, this.doneCount, d.toString());
+    }
+
+    /**
+     * Pause the processing to wait for jobs to complete. This may be
+     * made fancier at a future date.
+     *
+     * @throws InterruptedException
+     */
+    private void pause() throws InterruptedException {
+        Thread.sleep(this.waitInterval);
     }
 
     /**
@@ -240,8 +249,8 @@ public class RnaSeqProcessor extends BaseProcessor implements RnaSeqGroup.IParms
     private void processJobs(Set<RnaJob> incomplete) {
         // Separate out the running tasks.
         log.info("Scanning job list.");
-        Map<String, RnaJob> activeTasks = new HashMap<String, RnaJob>((incomplete.size() * 4 + 2) / 3);
-        Set<RnaJob> needsTask = new TreeSet<RnaJob>();
+        Map<String, RnaJob> activeTasks = new HashMap<>((incomplete.size() * 4 + 2) / 3);
+        Set<RnaJob> needsTask = new TreeSet<>();
         for (RnaJob job : incomplete) {
             String taskId = job.getTaskId();
             if (taskId == null)

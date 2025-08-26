@@ -6,9 +6,9 @@ package org.theseed.rna.erdb;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
+
 import org.kohsuke.args4j.Argument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,12 +54,11 @@ public abstract class BaseDbRnaProcessor extends BaseDbProcessor {
     private String genomeId;
 
     @Override
-    protected final boolean validateParms() throws ParseFailureException, IOException {
+    protected final void validateParms() throws ParseFailureException, IOException {
         // Insure the genome ID is reasonable.
         this.validateGenomeId();
         // Validate the subclass parameters.
         this.validateDbRnaParms();
-        return true;
     }
 
     /**
@@ -109,14 +108,12 @@ public abstract class BaseDbRnaProcessor extends BaseDbProcessor {
      */
     public static List<String> computeFeatureIndex(DbConnection db, String genome_id)
             throws SQLException, ParseFailureException {
-        List<String> retVal = new ArrayList<String>(4000);
+        List<String> retVal = new ArrayList<>(4000);
         try (DbQuery query = new DbQuery(db, "Genome Feature")) {
             query.select("Feature", "fig_id", "seq_no");
             query.rel("Genome.genome_id", Relop.EQ);
             query.setParm(1, genome_id);
-            Iterator<DbRecord> iter = query.iterator();
-            while (iter.hasNext()) {
-                DbRecord feat = iter.next();
+            for (DbRecord feat : query) {
                 String fid = feat.getString("Feature.fig_id");
                 int idx = feat.getInt("Feature.seq_no");
                 retVal.add(idx, fid);

@@ -95,7 +95,7 @@ public class ClusterLoadProcessor extends BaseDbProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // First, insure that the minimum clustering level is valid.
         if (this.minSim > 1.0 || this.minSim <= 0.0)
             throw new ParseFailureException("Minimum similarity must be between 0 and 1.");
@@ -104,7 +104,6 @@ public class ClusterLoadProcessor extends BaseDbProcessor {
             throw new FileNotFoundException("Correlation file " + this.corrFile + " is not found or unreadable.");
         // Estimate the number of samples being correlated.
         this.dataPoints = (int) Math.sqrt(this.corrFile.length() / 25 / 2) + 1;
-        return true;
     }
 
     @Override
@@ -138,7 +137,7 @@ public class ClusterLoadProcessor extends BaseDbProcessor {
             // The clusters are assigned numbers, in order.  The map below will map each cluster
             // ID to its member list.
             Map<String, Collection<String>> memberMap =
-                    new HashMap<String, Collection<String>>(this.clusters.size() * 4 / 3);
+                    new HashMap<>(this.clusters.size() * 4 / 3);
             // Now we create the new clusters.  We create them all first, so we can batch the
             // inserts.  If we updated the sample records at the same time, we would have to
             // insert one at a time.

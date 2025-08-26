@@ -109,7 +109,7 @@ public class MetaLoadProcessor extends BaseDbProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Verify the alias pattern.
         this.aliasPattern = Pattern.compile(this.aliasRegex);
         // Verify the groups file.
@@ -129,10 +129,9 @@ public class MetaLoadProcessor extends BaseDbProcessor {
         this.refGenome = new Genome(this.gtoFile);
         log.info("Reference genome is {}.", this.refGenome);
         // Denote no features have been loaded.
-        this.fidsLoaded = new HashSet<String>(this.refGenome.getFeatureCount());
+        this.fidsLoaded = new HashSet<>(this.refGenome.getFeatureCount());
         // Cache the reference genome ID.
         this.genomeId = this.refGenome.getId();
-        return true;
     }
 
     @Override

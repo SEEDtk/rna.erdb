@@ -21,6 +21,7 @@ import org.theseed.erdb.utils.BaseDbProcessor;
 import org.theseed.java.erdb.DbConnection;
 import org.theseed.java.erdb.DbLoader;
 import org.theseed.java.erdb.DbQuery;
+import org.theseed.java.erdb.DbRecord;
 import org.theseed.java.erdb.Relop;
 import org.theseed.rna.data.FileMeasureComputer;
 import org.theseed.rna.data.MeasureComputer;
@@ -76,15 +77,15 @@ public class MeasureLoadProcessor extends BaseDbProcessor implements MeasureComp
 
     @Override
     protected void setDbDefaults() {
-        this.mTypes = new ArrayList<MeasureComputer.Type>();
+        this.mTypes = new ArrayList<>();
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         if (! this.measureFile.canRead())
             throw new FileNotFoundException("Measurement file " + this.measureFile + " is not found or unreadable.");
         // Get the list of additional types.  Note that if the user specifies FILE again we just ignore it.
-        this.computers = new ArrayList<MeasureComputer>(this.mTypes.size() + 1);
+        this.computers = new ArrayList<>(this.mTypes.size() + 1);
         for (MeasureComputer.Type type : this.mTypes) {
             if (type != MeasureComputer.Type.FILE)
                 this.computers.add(type.create(this));
@@ -94,21 +95,18 @@ public class MeasureLoadProcessor extends BaseDbProcessor implements MeasureComp
         FileMeasureComputer fileComputer = new FileMeasureComputer(this);
         this.computers.add(fileComputer);
         this.samples = fileComputer.getSamples();
-        return true;
     }
 
     @Override
     protected void runDbCommand(DbConnection db) throws Exception {
         // We start by getting a list of the measurements we already have.  These are automatically
         // skipped.
-        this.measureSet = new HashSet<MeasurementDesc>(1000);
+        this.measureSet = new HashSet<>(1000);
         try (DbQuery query = new DbQuery(db, "Measurement")) {
             query.select("Measurement", "sample_id", "measure_type", "value");
             query.rel("Measurement.genome_id", Relop.EQ);
             query.setParm(1, this.genomeId);
-            var iter = query.iterator();
-            while (iter.hasNext()) {
-                var record = iter.next();
+            for (DbRecord record : query) {
                 String sampleId = record.getString("Measurement.sample_id");
                 String type = record.getString("Measurement.measure_type");
                 double value = record.getDouble("Measurement.value");

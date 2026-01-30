@@ -7,6 +7,7 @@ import java.io.File;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.cli.CopyTask;
@@ -31,17 +32,17 @@ public class RnaJob implements Comparable<RnaJob> {
     protected static Logger log = LoggerFactory.getLogger(RnaJob.class);
 
     /** name of this job */
-    private String name;
+    private final String name;
     /** ID of the current task (or NULL if none) */
     private String taskId;
     /** RNA Sequence source */
     private RnaSource source;
     /** output directory name */
-    private String outDir;
+    private final String outDir;
     /** current phase */
     private Phase phase;
     /** alignment genome */
-    private String alignmentGenomeId;
+    private final String alignmentGenomeId;
     /** name of the TPM directory */
     public static final String TPM_DIR = "Output";
     /** name of the job directory */
@@ -53,7 +54,7 @@ public class RnaJob implements Comparable<RnaJob> {
     public enum Phase {
         TRIM("_fq"), ALIGN("_rna"), COPY("_genes.tpm"), DONE("");
 
-        private String suffix;
+        private final String suffix;
 
         /**
          * Construct a phase
@@ -71,8 +72,8 @@ public class RnaJob implements Comparable<RnaJob> {
          */
         public String checkSuffix(String jobResult) {
             String retVal = null;
-            if (StringUtils.endsWith(jobResult, this.suffix))
-                retVal = StringUtils.removeEnd(jobResult, this.suffix);
+            if (Strings.CS.endsWith(jobResult, this.suffix))
+                retVal = Strings.CS.removeEnd(jobResult, this.suffix);
             return retVal;
         }
 

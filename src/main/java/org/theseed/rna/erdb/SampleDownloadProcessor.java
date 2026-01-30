@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
@@ -100,7 +100,7 @@ public class SampleDownloadProcessor extends BaseProcessor {
         } else
             log.info("Working directory is {}.", this.workDir);
         // Make sure the PATRIC directory is absolute.
-        if (! StringUtils.startsWith(this.inDir, "/"))
+        if (! Strings.CS.startsWith(this.inDir, "/"))
             throw new ParseFailureException("PATRIC input directory must be absolute.");
         // Check for a filter file.
         if (this.filterFile == null) {
